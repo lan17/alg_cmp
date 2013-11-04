@@ -1,0 +1,35 @@
+Project Euler problem 209 report
+
+This problem asks what is the number of possible truth table assignments that make certian boolean formula always true for any input.
+
+The formula takes in 6 inputs, making total 64 possible values that can be obtained using them.  Each particular combination can be "rotated" to get the bits for the combination on the right side of the formula.  If you rotate enough you always come back to start value through the virtue of the problem's definition.  Thus we can define a closure on any particular 6 settings which yields a chain of combinations of 6 variables that lead from one to another and result in a chain-loop.
+
+We have so many loops out of 64 possible combinations, which are all disjoint and who'se union's cardinality is 64.
+
+I have made a recursive function which counts number of combinations that one can achieve inside single loop.  Since the loops are disjoint we can simply multiply answers from running all of them together to achieve global answer.
+
+recursive function has following pseudo code
+
+// start is the starting combination.
+def count_ways( start ):
+	return count_ways_rec( start, false, start, false ) + count_ways_rec( start, true, start, true )
+
+def count_ways_rec( start, is_start_true, current_state, is_current_true ):
+	next_state = rotate( current_state )
+	if next_state == start:
+		if is_start_true and is_current_true:  // this is impossible, so we return 0
+			return 0
+		else return 1	// if current and start have different assumed truthiness then there is only one possibility
+'
+	answer = 0
+	if not is_current_true: // if current state is false then we have two possibilities for next_state
+		answer += count_ways_rec( start, is_start_true, next_state, true ) + count_ways_rec( start, is_start_true, next, false )
+	else: // otherwise we only have one possiblity (next state has to be false).
+		answer += count_ways_rec( start, is_start_true, next, false )
+
+	return answer
+
+
+In my actual solution I have memoized count_ways_rec with the key being a tuple {current_state, is_start_true, is_current_true}.
+
+After memoization my program works really fast.  The running time is O(N*C) where C is a small constant and N is number of combinations or 2^(number of vars).  

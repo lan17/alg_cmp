@@ -1,0 +1,35 @@
+\documentclass[11pt]{article}
+
+\usepackage{epsf,amsfonts,amssymb,hyperref}
+
+\begin{document}
+\title{Solution to "We Are the Swarm" facebook puzzle}
+\author{Lev A Neiman}
+
+\maketitle
+
+\section{Problem Statement}
+
+Everyone you know anticipates the release of StarCraft 2 with vast eagerness. To help get back in the saddle of the greatest RTS game ever, you decide to use programming to help practice your decision making. 
+
+You are the Zerg Queen in command of the 654195331th legion of Zerg forces, the only side worth playing in StarCraft. The wise Overmind has given you the important task of cleaning up some remote planets for mineral mining operations. Apparently, some pesky Terran forces have decided to set up base defenses in these locations, prior to your arrival. With your limited forces, you must determine which Terran bases to attack. Your Zerg forces on each planet have free movement over that one planet, and may split up to attack any number of Terran bases on that planet. However, your Zerg ground forces have not yet evolved space flight and thus cannot travel from planet to planet to assist each other. 
+
+The Overmind has provided you with some valuable information about each base. For each Terran base, you are given the amount of minerals, and the strength of the Terran forces at that base. Terran communication channels have been disrupted so you do not have to worry about forces from one base aiding another. You know from past experiences that your odds of victory over a particular Terran base are equal to: 
+
+$$ P(z,s) = e^{-63s+10}/(e^{-63s+10}+e^{-21z}) $$
+
+Where z is the strength of the Zerg forces, s is the strength of the Terran base, $ P(z,s) $ is the probability from (0-1) that the base will be taken over, and e is Euler's number. The expected amount of minerals gained from an attack on a Terran base is therefore equal to round( $ P(z,s) * m $ ) where m is the amount of minerals at the Terran base. Use these probabilities to attack Terran forces that will likely result in the maximum amount of minerals available for mining. Mineral gains are considered significant enough to commit Zerg units if the expected gain is 1 or more minerals. Any extra forces should not be allocated to attack a base so that the Overmind may use them for other nefarious purposes. 
+
+Write a program that takes a single argument on the command line. This argument must be a file name, which contains the input data. The program should output to standard out the deployment orders of your Zerg horde. Your program must be robust and fast enough to be able to handle large inputs (within the below bounds) within a matter of minutes. 
+
+
+\section{Solution}
+
+The key to this problem is realizing that $ P(z,s) $ can only be either 0 or 1.  This is due to usage of exponent and large factors.  Given this fact along with each planet being independant, we can reduce finding solution for each planet to an instance of 0-1 knapsack problem.  The cost of each item or terran base becomes the minimum number of zerg troops needed to get all of its minerals.  Value is simply the number of minerals at such base.  I have used two tables for this problem to also do backtracking to get assignments.
+
+\section{Analysis}
+
+Same as 0-1 knapsack problem complexity - \href{http://en.wikipedia.org/wiki/Knapsack_problem#0-1_knapsack_problem}{wikipedia knapsack page.}
+
+
+\end{document}

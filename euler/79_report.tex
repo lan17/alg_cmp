@@ -1,0 +1,47 @@
+\documentclass[11pt]{article}
+
+\usepackage{epsf,amsfonts,amssymb}
+
+\begin{document}
+\title{Solution to Problem 79 in projecteuler.net}
+\author{Lev A Neiman}
+
+\maketitle
+
+\section{Problem Statement}
+
+A common security method used for online banking is to ask the user for three random characters from a passcode. For example, if the passcode was 531278, they may ask for the 2nd, 3rd, and 5th characters; the expected reply would be: 317.
+
+The text file, keylog.txt, contains fifty successful login attempts.
+
+Given that the three characters are always asked for in order, analyse the file so as to determine the shortest possible secret passcode of unknown length.
+
+\section{Solution}
+
+I have formed a graph out of the input file.  A node is a digit, and an edge between nodes a and b exists if b follows a.  Given such graph I have determined that there are no loops in the graph, and that the starting digit has to be 7 because no other digit preceeds it in graph.  
+
+Given such constraints it is easy to write a simple DFS to solve the problem:
+
+\begin{verbatim}
+
+def search( i ):
+    foll = get_followed(i)
+    if len( foll ) == 0:
+        return [i]
+    ret = []
+    for f in foll:
+        r = search(f)
+        if len(r) > len(ret):
+             ret = r
+    ret = [i] + ret
+    return ret
+
+print solve(7)
+
+\end{verbatim}
+
+\section{Analysis}
+
+Running time is O(N) where N is number of nodes in graph.
+
+\end{document}

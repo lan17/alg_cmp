@@ -1,0 +1,10 @@
+lev@zao:~/prime/alg_cmp/facebook/smallworld$ time ./smallworld t4.in > out.txt
+
+real	0m2.057s
+user	0m1.648s
+sys	0m0.400s
+lev@zao:~/prime/alg_cmp/facebook/smallworld$ diff t4.out out.txt 
+0a1
+> redo.size() = 99617
+lev@zao:~/prime/alg_cmp/facebook/smallworld$ 
+

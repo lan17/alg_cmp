@@ -1,0 +1,27 @@
+\documentclass[11pt]{article}
+
+\usepackage{epsf,amsfonts,amssymb,hyperref,cite}
+
+\begin{document}
+\title{Solution to Project Euler problem \#244}
+\author{Lev A Neiman}
+
+\maketitle
+
+\section{Problem Statement}
+
+This problem is similar to popular game of fifteen \cite{fifteen}.  The only difference is that instead of numbers we have just two colors red and blue on the board.  The problem asks to construct an algorithm that would enumerate all shortest ways to get from configuration A to configuration B.
+
+\section{Solution}
+
+We can reduce this problem to a shortest path in graph by represesnting each possible state as a node, and adding edges between nodes if there is a single move that can move from one state to another.  There are at most 4 edges from any node in graph as there are 4 moves possible.  There are $ 183,040 $ states (result obtained experimentally).  And a little less than $ 183,040*4 $ edges.
+
+I have implemented Djikstra's shortest path algorithm \cite{dijkstra} to solve this problem, however a simpler BFS would probably be more appropriate as the edges all have uniform weights.  
+
+\section{Analysis}
+
+Running time of my implementation is $ O(|V|+|E|) $ through the virtue of the fact that my queue implementation is very simple and runs in constant time.  This is possible because all edges have uniform cost, so I am able to use a good ol' queue instead of a priority queue.  
+
+\bibliographystyle{acm}
+\bibliography{244_ref}
+\end{document}

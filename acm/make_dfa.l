@@ -1,0 +1,292 @@
+%{
+// written by Lev A Neiman - ln180704@ohio.edu
+// parse JFLAP's xml DFA file and output C++ code in dfa.txt
+#include <stdio.h>
+ #include <set>
+#include <vector>
+#include <string>
+#include <map>
+#include <sstream>
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+ 
+#define vecs vector< string >
+#define veci vector< int >
+#define vecsi vector<string>::iterator
+#define vecii vector<int>::iterator
+ 
+#define FOR( i, n ) for( int (i) = 0; (i) < (n); ++(i) )
+#define FORR( i, n, m ) for(int (i) = (n); (i) <= (m); ++(i) )
+#define FOREACH(_it,_l) for(__typeof((_l).begin()) _it=((_l).begin());(_it)!=(_l).end();(_it)++)
+#define ALL(x) (x).begin(),(x).end()
+ 
+#define END_PARSE 0
+ 
+#define STATE_DECLARATION 1
+#define STATE_NUM 2
+#define STATE_FINAL 3
+#define STATE_INITIAL 31
+#define STATE_CLOSE 4
+#define TRANSITION_START 5
+#define TRANSITION_FROM 6
+#define TRANSITION_TO 7
+#define TRANSITION_READ 8
+#define TRANSITION_END 9
+ 
+using namespace std;
+ 
+template <class T>
+string toString( T & t )
+{
+    stringstream s;
+    s<<t;
+    return s.str( );
+}
+ 
+string ret_str;
+int line_num = 1;
+ 
+%}
+ 
+number [0-9]*
+letter [a-z]
+ 
+%option noyywrap
+ 
+ 
+%%
+    /*** Rules section ***/
+"<state" { return STATE_DECLARATION; }
+"id=\""{number}"\"" {
+    string t = yytext;
+    ret_str = t.substr( 4 ); 
+    ret_str.erase( ret_str.size( ) - 1 );
+    //cout<<"NUMBA - "<<ret_str<<endl;
+    return STATE_NUM; }
+"</state>" { return STATE_CLOSE; }
+"<transition>" { return TRANSITION_START; }
+"<from>"{number}"</from>" {
+    ret_str = yytext;
+    ret_str = ret_str.substr( 6 );
+    ret_str.erase( ret_str.size( ) - 7 );
+    return TRANSITION_FROM;
+    }
+"<to>"{number}"</to>" {
+    ret_str = yytext;
+    ret_str = ret_str.substr( 4 );
+    ret_str.erase( ret_str.size( ) - 5 );
+    return TRANSITION_TO;
+    }
+"<read>"{letter}"</read>" { ret_str = yytext[6]; return TRANSITION_READ; }
+"</transition>" { return TRANSITION_END; }
+"</structure>" { return END_PARSE; }
+"<final/>" { return STATE_FINAL; }
+"<initial/>" { return STATE_INITIAL; }
+ 
+ 
+ 
+[ \t\n\f\r] {
+ 
+            if( yytext[0] == '\n' ) { line_num++; }
+           }
+ 
+ 
+.     {
+ 
+        // everything else.  tells the main the char wasnt recognized.
+        ret_str = yytext;
+ 
+       }
+ 
+ 
+ 
+%%
+ 
+/*** C Code section ***/
+ 
+bool reading_state, reading_transition;
+void resetLogic( )
+{
+    reading_state = reading_transition = false;
+}
+ 
+struct state
+{
+    int num;
+    bool final;
+    bool initial;
+    state( ){ final = initial = false; }
+};
+ 
+struct transition
+{
+    int from;
+    int to;
+    char read;
+};
+ 
+void printVeci( ostream & os, veci & v )
+{
+    os<<"{ ";
+    FOREACH( i, v )
+    {
+        vecii j = i + 1;
+        os<<*i;
+        if( j != v.end( ) ) os<<", ";
+    }
+    os<<" }";
+}
+
+void printVVeci( ostream & os, vector<veci> & vv )
+{
+    os<<"{ ";
+    FOREACH( v, vv )
+    {
+        vector<veci>::iterator j = v + 1;
+        printVeci( os, *v );
+        if( j != vv.end( ) ) os<<", ";
+    }
+    os<<" }";
+}
+ 
+int main(void)
+ 
+{
+    int n,token;
+    resetLogic( );   
+ 
+    vector< state > states;
+    vector< transition > transitions;
+ 
+    cout<<"STARTING"<<endl;
+    while( token = yylex( ) )
+ 
+    {
+        switch(token)
+        {
+            case STATE_DECLARATION:
+            {
+                states.push_back( state( ) );
+                reading_state = true;
+                break;
+            }
+            case STATE_NUM:
+            {
+                states.back().num = atoi( ret_str.c_str( ) );
+                break;
+            }
+            case STATE_INITIAL:
+            {
+                states.back().initial = true;
+                break;
+            }
+            case STATE_FINAL:
+            {
+                states.back().final = true;
+                break;
+            }
+            case TRANSITION_START:
+            {
+                transitions.push_back( transition( ) );
+                break;
+            }
+            case TRANSITION_FROM:
+            {
+                transitions.back().from = atoi( ret_str.c_str( ) );
+                break;
+            }
+            case TRANSITION_TO:
+            {
+                transitions.back().to = atoi( ret_str.c_str( ) );
+                break;
+            }
+            case TRANSITION_READ:
+            {
+                transitions.back().read = ret_str[0];
+                break;
+            }
+        }
+    }
+    int initial = 0;
+    veci final;
+    FOREACH( state, states )
+    {
+        if( state->final ) final.push_back( state->num );
+        if( state->initial ) initial = state->num;
+    }
+    cout<<"Final states set = ";
+    printVeci( cout, final );
+    string valid_states_array = "bool _LEV_VALID_STATES[] = { ";
+    FOR( i, states.size( ) )
+    {
+        string addon;
+        addon = toString( states[i].final );
+        if( i < states.size( ) - 1 ) addon += ",";
+        valid_states_array += addon;
+    }
+    valid_states_array += "};\n";
+    cout<<"\nValid stats bool array looks like this = "<<valid_states_array<<endl;
+    set< char > letters;
+    map< char, int > letters_map;
+    map< int, char > int_letters_map;
+    FOREACH( transition, transitions )
+    {
+        letters.insert( transition->read );
+    }
+    int l_count = 0;
+    FOREACH( c, letters )
+    {
+        letters_map[*c]=l_count;
+        int_letters_map[l_count] = *c;
+        cout<<*c<<":"<<l_count<<"  ";
+        l_count++;
+    }
+    cout<<endl;
+    string lms_func; // string for func to map between char and int;
+    lms_func = "int _LEV_MCI( char & c )\n{\n\tswitch( c )\n\t{\n";
+    FOREACH( c, letters )
+    {
+        int n = letters_map[*c];
+        string chara = toString( *c );
+        string addon = "\t\t\tcase '"+ chara +"': return " + toString( n ) + ";\n";
+        lms_func += addon;
+    }
+    lms_func += "\t\t\tdefault: return -1; \n\t\t}\n}";
+    cout<<lms_func;
+
+    vector< veci > dfa( states.size( ), veci( letters.size( ), -1 ));
+    FOR( i, dfa.size( ) )
+    {
+        FOR( j, dfa[i].size( ) )
+        {
+            int to_state = -1;
+            FOREACH( trans, transitions )
+            {
+                if( trans->from == i && trans->read == int_letters_map[j] )
+                {
+                    dfa[i][j] = trans->to;
+                    break;
+                }
+            }
+        }
+    }
+   
+    stringstream dfa_output;
+    dfa_output<<"int _LEV_DFA["<<states.size( )<<"]["<<letters.size( )<<"] = ";
+    printVVeci( dfa_output, dfa );
+    dfa_output<<";";
+
+    ofstream ofs( "dfa.txt" );
+    int num_states = states.size( );
+    ofs<<"int _LEV_NUM_STATES = "<<states.size( )<<";";
+    ofs<<"\nint _LEV_NUM_LETTERS = "<<letters.size( )<<";\n";
+    ofs<<"int _LEV_INITIAL = "<<initial<<";\n";
+    ofs<<lms_func;
+    ofs<<"\n"<<dfa_output.str( );
+    ofs<<"\n"<<valid_states_array;
+   
+    ofs.close( );
+ 
+ 
+}

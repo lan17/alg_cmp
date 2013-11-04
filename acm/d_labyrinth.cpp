@@ -1,0 +1,188 @@
+#include <iostream>
+#include <vector>
+#include <map>
+#include <cassert>
+#include <algorithm>
+#include <string>
+#include <sstream>
+#include <set>
+#include <cmath>
+#include <queue>
+#include <stack>
+#include <list>
+#include <numeric>
+#include <bitset>
+#include <cstdio>
+#include <valarray>     //comment
+#include "float.h"
+
+#define FMAX DBL_MAX
+#define FMIN DBL_MIN
+
+#define ld long double
+#define ll __int64
+#define ull unsigned long long
+
+#define vecs vector< string > 
+#define veci vector< int >
+#define vecsi vector<string>::iterator
+#define vecii vector<int>::iterator
+#define vec vector
+
+#define FOR( i, n ) for( int (i) = 0; (i) < (n); ++(i) )
+#define FORR( i, n, m ) for(int (i) = (n); (i) <= (m); ++(i) )
+#define ALL(x) (x).begin(),(x).end()
+
+#define pnt(x) cout<<#x<<" = "<<(x)<<endl;
+
+using namespace std;
+
+struct Node
+{
+	int depth;
+	int s;
+	int i, j, n;
+	bool junction;
+	bool leaf;
+	Node * parent;
+	set<Node * > kids;
+};
+
+void build( int i, int j, vec<vec<Node*> > & nodz, vec<vec<bool> > & done )
+{
+
+}
+
+bool canMove( int i, int j, const vecs & board )
+{
+	if( i < 0 || j < 0 || i > board.size( ) || j > board[0].size( ) ) return false;
+	if( board[i][j] == '.' ) return true;
+	return false;
+}
+
+void childrenOf( int i, int j, const vecs & board, const vec<vec<bool> > & visited, vec<pair<int, int> > & kidz )
+{
+	if( canMove( i-1, j, board ) && !visited[ i - 1 ][ j ] ) kidz.push_back( make_pair( i-1, j ) );
+	if( canMove( i+1, j, board ) && !visited[ i + 1 ][ j ] ) kidz.push_back( make_pair( i+1, j ) );
+	if( canMove( i, j-1, board ) && !visited[ i ][ j - 1 ] ) kidz.push_back( make_pair( i, j-1 ) );
+	if( canMove( i, j+1, board ) && !visited[ i ][ j + 1 ] ) kidz.push_back( make_pair( i, j+1 ) );
+}
+
+void DFZ( int i, int j, vec<vec<Node*> > & nodz, const vecs board, vec<vec<bool> > & visited, int n = 0 )
+{
+	if( visited[ i ][ j ] ) return;
+	visited[ i ][ j ] = true;
+	nodz[ i ][ j ]->depth = n;
+	vec<pair<int,int> > kidz;
+	childrenOf( i, j, board, visited, kidz );
+	if( kidz.size( ) == 0 )
+	{
+		nodz[ i ][ j ] -> leaf = true;
+		return;
+	}
+	int new_n = n + 1;
+	for( vec<pair<int,int> >::iterator kid = kidz.begin(); kid != kidz.end(); kid++ )
+	{
+		nodz[ i ][ j ]->kids.insert( nodz[ kid->first ][ kid->second ] );
+		nodz[ kid->first ][ kid->second ] -> parent = nodz[ i ][ j ];
+		DFZ( kid->first, kid->second, nodz, board, visited, new_n );
+	}
+}
+
+int S( Node * root )
+{
+	if( root->leaf ) return root->depth;
+	int nkids = root->kids.size( );
+	if( nkids == 1 )
+	{
+		return S( *(root->kids.begin( )) );
+	}
+	if( nkids == 2 )
+	{
+		Node * childa = *root->kids.begin( );
+		Node * childb = *( (root->kids.begin( ))++ );
+		int a = S( childa );
+		int b = S( childb );
+		root->s = ( a - root->depth ) + ( b - root->depth );
+		//root->depth=max( a, b );
+	}
+	if( nkids == 3 )
+	{
+		Node * childa = *root->kids.begin( );
+		Node * childb = *( (root->kids.begin( ))++ );
+		Node * childc = *( ((root->kids.begin( ))++)++ );
+		int a = S( childa );
+		int b = S( childb );
+		int c = S( childc );
+		int max_s = max( (a - root->depth ) + ( b - root->depth ), ( a - root->depth ) + ( c - root->depth ) ) ;
+		max_s = max( max_s, ( b - root->depth ) + ( c - root->depth ) );
+		root->s = max_s;
+	}
+	return root->s;
+}
+
+int sMax( Node * root )
+{
+	if( root->leaf ) return root->depth;
+	int ret = max( root->depth, root->s );
+	for( set<Node*>::iterator child = root->kids.begin(); child!= root->kids.end(); child++ )
+	{
+		ret = max( ret, sMax( *child ) );
+	}
+	return ret;
+}
+
+int main(int argc, char *argv[])
+{
+	//time_t start = clock();
+	int m,n;
+	cin>>m>>n;
+	if( cin.peek() == '\n' ) cin.ignore( );
+	vec<string> board;
+	vec<vec< Node * > > nodz( n, vec<Node *>( m, (Node*)NULL ) );
+	int c = 0;
+	FOR( i, n )
+	{
+		string in;
+		getline( cin, in );
+		board.push_back( in );
+		FOR( j, m )
+		{
+			Node * new_node = new Node( );
+			nodz[ i ][ j ] = new_node;
+			new_node->s = 0;
+			new_node->i = i;
+			new_node->j = j;
+			new_node->n = c;
+			new_node->parent = NULL;
+			new_node->leaf = false;
+			new_node->junction = true;
+			c++;
+		}
+	}
+	pair< int, int > first_cell;
+	FORR( i, 1, n - 2 )
+	{
+		bool should_break = false;
+		FORR( j, 1, m - 2 )
+		{
+			if (board[i][j] == '.' )
+			{
+				first_cell.first = i;
+				first_cell.second = j;
+				should_break = true;
+				break;
+			}
+		}
+		if( should_break ) break;
+	}
+	vec<vec<bool> > visited( n, vec<bool>(m, false ) );
+	DFZ( first_cell.first, first_cell.second, nodz, board, visited );
+	S( nodz[ first_cell.first ][ first_cell.second ] );
+	cout<<sMax( nodz[ first_cell.first ][ first_cell.second ] )<<endl;
+    //time_t finish = clock() - start;
+    //cout<<finish;
+
+	
+	return 0;
+}

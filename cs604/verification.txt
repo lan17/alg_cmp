@@ -1,0 +1,20 @@
+lev@zao:~/prime/cs604$ ./min_weighted_vertex_cover.py < ex1.in 
+3.0
+lev@zao:~/prime/cs604$ ./min_weighted_vertex_cover.py < ex2.in 
+7.0
+lev@zao:~/prime/cs604$ ./min_weighted_vertex_cover.py < ex3.in 
+77.0
+lev@zao:~/prime/cs604$ time ./min_weighted_vertex_cover.py < tree1.in 
+5751.0
+
+real	0m0.065s
+user	0m0.052s
+sys	0m0.004s
+lev@zao:~/prime/cs604$ time ./min_weighted_vertex_cover.py < tree2.in 
+3432.0
+
+real	0m0.060s
+user	0m0.040s
+sys	0m0.016s
+lev@zao:~/prime/cs604$ 
+

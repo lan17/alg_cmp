@@ -1,0 +1,37 @@
+\documentclass[11pt]{article}
+
+\usepackage{epsf,amsfonts,amssymb}
+
+\begin{document}
+\title{Solution to Problem 96 in projecteuler.net}
+\author{Lev A Neiman}
+
+\maketitle
+
+\section{Problem Statement}
+
+Su Doku (Japanese meaning number place) is the name given to a popular puzzle concept. Its origin is unclear, but credit must be attributed to Leonhard Euler who invented a similar, and much more difficult, puzzle idea called Latin Squares. The objective of Su Doku puzzles, however, is to replace the blanks (or zeros) in a 9 by 9 grid in such that each row, column, and 3 by 3 box contains each of the digits 1 to 9.
+
+A well constructed Su Doku puzzle has a unique solution and can be solved by logic, although it may be necessary to employ "guess and test" methods in order to eliminate options (there is much contested opinion over this). The complexity of the search determines the difficulty of the puzzle; the example above is considered easy because it can be solved by straight forward direct deduction.
+
+The 6K text file, sudoku.txt (right click and 'Save Link/Target As...'), contains fifty different Su Doku puzzles ranging in difficulty, but all with unique solutions (the first puzzle in the file is the example above).
+
+By solving all fifty puzzles find the sum of the 3-digit numbers found in the top left corner of each solution grid; for example, 483 is the 3-digit number found in the top left corner of the solution grid above.
+
+\section{Solution}
+
+I have implemented a brute force approach via DFS to solve this problem.  However this brute force approach is enough to solve any sudoku puzzle because of the puzzle's constraints and its size.  Even for a puzzle containing all zeros my program finds a possible solution in about same amount of time as one with far fewer zeros.
+
+A true brute force would take far too long, however, so I introduce a few optimizations:  
+\begin{enumerate}
+\item I keep track of coordinates of each zero in the grid.  This way in my search I can jump directly to next zero without repeating work and iterating through the grid to find next zero position.  Coordinates of all zeros are invariant throughout the whole search, and I can process them in order in my DFS.  
+\item I use a function that given a particular grid and coordinate of a zero returns all possible integer values that could go into it without violating rules of the game.  To return this set of possible values I use STL's bitset which is equivalent to using an integer except more convenient to use.
+\item Biggest optimization, however, is early branch termination in DFS.  I terminate a branch if there are zeros left and set of possible values that go into that zero is empty.
+\end{enumerate}
+There are a few more implementation detail type optimizations that help me, such as modifying and passing grid in place.
+
+\section{Analysis}
+
+As grid grows, the running time of my algorithm grows exponentially with it.  However since Sudoku's grid is limited to 9x9 it is not of much concern here.
+
+\end{document}

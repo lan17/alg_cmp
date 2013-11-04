@@ -1,0 +1,9 @@
+Project Euler problem 83 report.
+
+This is a problem of finding a shortest path from left to right side in a graph where each edge is a positive integer.  Graph is represented as 80x80 matrix where each adjacent cell is a neighbor and its value is the cost of going to it.
+
+For this problem I have just used Floyd-Warshall algorithm: http://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm 
+This is a dynamic programming algorithm and it finds shortest path between any two pair of points in a graph.  
+Running time is O(|V|^3) where V is number of vertices. 
+
+My solution is written in python so to execute it you must type in 'python 83.py' and make sure that 83_in.txt is in same folder.  It runs pretty fast for this problem.

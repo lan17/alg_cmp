@@ -1,0 +1,9 @@
+Project Euler problem 300 report
+
+This problem asks to compute number average HH contacts in protein strings of length 15, which means that for all 2^15 combinations we must find optimal arrangment first then add it to an accumulator.
+
+I have utilized DFS for this problem that only does one type of rotatoin in first 2 level of recrusion.  This cuts down number of layouts to consider by about 3/4.  Another optimization is memoizing results for a particular string and its reflection since the answer for a string and its reflection are always equal.
+
+Running time is roughly O(C*N*K*D) where D is number of valid layouts, N is number of different strings.  In this problems case N == 2^15, and in case of my implementation C and K are constants with C = 1/2 and D roughly equal to 1/4
+
+

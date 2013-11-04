@@ -1,0 +1,63 @@
+\documentclass[11pt]{article}
+
+\usepackage{epsf,amsfonts,amssymb,hyperref}
+
+\begin{document}
+\title{Solution to "Find Sophie" Facebook puzzle\cite{findsophie}}
+\author{Lev A Neiman}
+
+\maketitle
+
+\section{Problem Statement}
+
+Given a set of vertices with some probability and edges with some weight, find minimum expected value for a tour that visits every vertex.  Or more formally:
+
+Given graph $G=(V,E,p,c)$ where $V$ is set of vertices, $E$ is set of edges, $p$ is function which assigns probability to each vertex $v_{i}$ as $p(v_{i} \in V)=(0,1)$, and c assigns distance to each edge $(u,v)\in E$.  If $T=[v_{j},v_{j+1}....v_{|V|}]$ is a possible tour inside the graph, then we can compute cost of such tour, or its expected distance as such
+
+$$Cost(T)=\sum_{j=2}^{|V|}p(T(j))md(T(j),T(j-1))$$
+
+Here function $md(v_{i},v_{j})$ computes shortest distance using edge cost only between vertex $v_{i}$ and $v_{j}$.  This way we can avoid repeating vertices inside $T$ and think about $G$ as a fully connected graph.
+
+Our problem is to find a possible tour $T$ such that its $Cost(T)$ is minimized.
+
+\section{Solution}
+
+This problem is a modification of Traveling Salesman Problem\cite{TSP}.  The difference is that in this version we may visit each vertex more than once, and we have an additional constraint on minimizing the cost of the tour.  However given $Cost(T)$ and function $md$ we can think of $G$ as fully connected graph by adding edges between vertices with distance set to their minimum distance using already existing edges.  We can pre-compute all possible values for $md$ via Floyd-Warshall's\cite{floyd} algorithm.
+
+TSP is an NP-Complete problem, so the only solution is to try all possible tours.  There are $|V|!$ possible tours, and facebook's hardest cases are somewhere around 20 vertices max.  Therefore on big input we must check $20!=2.43290201*10^{18}$ states.  However we can reduce this number to $|V|*2^{|V|}$ states via dynamic programming.  This would make number of possible states to consider $20*2^{20}=20,971,520$ which is manageable.
+
+Let's define state as a tuple $(i,D)$ where $i$ is index into vertex and $D$ is a set of visited nodes with $i\in D$.  We can compute minimum cost to get to node $v_{i}$ using only vertices from $D$.  For each $i$ there are possible $2^{|V|}$ permutations of visited nodes.  Therefore we have total $|V|2^{|V|}$ states.
+
+We can compute optimal solution for state using following DP formula.
+
+$$Cost(i,D) = \min_{j=1, j\neq i}^{|V|} Cost(j,D') + sumprob(D')*md(v_{i},v_{j}), D' = D-i$$
+
+$$sumprob(D) = \sum_{v_{i}\in V, i\notin D } p(v_{i})$$
+
+$sumprob$ is a function which computes a sum of probabilities of all vertices not included in $D$.
+
+In other words we look at all states that can lead to current state.  A possible value for current state is optimal value for previous state + sum of probabilities not included in previous state multiplied by minimum distance between current vertex and previous vertex.
+
+We can imagine all states $(i,D)$ as vertices in a directed acyclic graph.  We can connect vertices by taking state $(i,D)$ and connecting it to all states $(j,D')$ such that $j\notin D, D' = D + j$ with edge cost = $(i,D)+sumprob(D)*md(v_{i},v_{j})$.  Problem then becomes to find shortest path from $(1,(1)) \to (i,D)$ where $|D| = |V|$.  Then we just have to find i with such D that has minimum cost.
+
+\section{Analysis}
+
+This algorithm clearly has complexity $O(n^{2}2^{n}), n = |V|$. because we have $n*2^n$ states and for each one we consider $n-1$ possibilities.  It is exponential time but far better than factorial time.  
+
+\section{Possible Alternative Solution}
+
+I have made an alternative solution which produces same results for sample test cases I was able to find, but which I am not sure is correct because I have used heuristics which I have not proven to be correct, and will probably fail on some test cases which I haven't thought of yet.  This is the one which I have presented to you during problem day session.  I have later realized the DP solution I have used above which is guaranteed to be correct but is slower.
+
+Basic idea is to perform a DFS on $V$ and possibly consider all $N!$ tours, but prune certain branches off.  One optimization is to keep track of global minimum computed so far and terminate branches that are guaranteed to lead to larger solution.  However this is nearly not enough to get done in reasonable time (trust me I tried).
+
+To speed up computation of global minimum I sorted all neighbors of each vertex according to distance.  So when I am visiting vertex $v_{i}$ I will look at all other unvisited vertices in order of increasing distance from $v_{i}$.  This allowed me to find global solution really fast, however my algorithm wouldn't know its a global minimum solution and would still keep running for a long time.  
+
+To fix that I have implemented a heuristic that I am pretty sure is incorrect, which nonetheless terminates my program very quickly and outputs right solutions for test cases from facebook boards.  As I am iterating for possible next vertices for $v_{i}$ i terminate if solution keeps increasing for more than 2 times.  Maybe it is correct, but maybe not.  Only facebook bot will tell.  
+
+An interesting problem would be to analyze how well that solution approximates optimal solution.  It does seem to work really fast, so it could be useful in a situation where an approximation would suffice.  
+
+I have included both solutions.  DP one is called sophie.cc and is the one compiled by makefile.  sophie\_old.cc is the questionable implementation.
+
+\bibliographystyle{acm}
+\bibliography{report_ref}
+\end{document}

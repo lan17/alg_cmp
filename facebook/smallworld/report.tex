@@ -1,0 +1,65 @@
+\documentclass[11pt]{article}
+
+\usepackage{epsf,amsfonts,amssymb,hyperref,cite}
+
+\begin{document}
+\title{Solution to "It's a small world" facebook puzzle\cite{smallworld}.}
+\author{Lev A Neiman}
+
+\maketitle
+
+\section{Problem Statement}
+
+Given a large array of points on a 2-d plane, find closest 3 neighbors for each point.  
+
+\section{Solution}
+
+Solution must be somewhat robust and efficient as simple $ O(Nlog(N)N^{2}) $ (computing distance between all points, then sorting) will both take  up too much memory and run forever.
+
+I have used a simple space partitioning algorithm (also divide and conquer) that splits 2d plane into bins of fixed size.  All bins are disjoint and contain monotonically increasing points with respect to x coordinate.  
+
+I use following data structures:
+\begin{enumerate}
+\item Each point $i$ is a tuple $P_{i}=\left \{ id,x,y \right \}$.
+\item A vector $friends$ which contains tuples $P$ in order given in input file.
+\item A vector $xf$ of points sorted by their x coordinate.
+\item A vector $yf$ of points sorted by their y coordinate.
+\item An associative array $M(id)\to \left \{ (id_{0},d_{0}), (id_{1},d_{1}), (id_{2}, d_{2}) \right \}$, which contains for every id a vector of tuples of a another point's $id_{i}$ and distance $d_{i}$ between id and $id_{i}$.  This vector is kept sorted by increasing d.
+\item A set of point ids $redo$ which contains ids of points which need to be re-evaluated after each bin computation.  
+\end{enumerate}
+
+Basic operation of algorithm is as follows:
+\begin{enumerate}
+\item Read all points from file and store as a vector of tuples P.
+\item Create vector's $xf$ and $yf$ by sorting points by x and y coordinates respectively.
+\item Given a bin size $B$, iteratively divide vector $xf$ into bins each of size $B$.
+\item Inside each bin we compute $x_{min}$ and $x_{max}$ which are the minimum and maximum x coordinates inside the bin respectively.
+\item For every point inside one bin we compute distances between all other points and store them in $M$.  There is a possible optimization here. If we already computed some possible 3 closest neighbors for a given point we can disregard other points who's difference in x or y coordinates is larger than third smallest distance we currently have.  Thus we do not need to perform an expensive full fledged distance computation.
+\item Once we have all possible closest neighbors for a point inside a bin we must check if the distance to third closest neighbor is larger than distance from that point to either $x_{min}$ or $x_{max}$, in which case we put it into $redo$.  Otherwise such point's three current closest neighbors are guaranteed to be globally closest.
+\item For each point $P_{r_{i}}$ in $redo$ we must consider points outside the bin as it is quite possible that there are closer points.  However we do not need to consider all points in $friends$.  We can use $yf$ to find all points which are within certain distance in y coordinate of $P_{r_{i}}$.  Points which have difference in y coordinate from $P_{r_{i}}$ larger than $P_{r_{i}}$'s third closest neighbors can be disregarded.
+
+To find such range in $yf$ we can use binary search.  First element would have y coordinate larger or equal to $P_{r_{i}}$'s y coordinate - $P_{r_{i}}$'s third neighbor.  Last element would have y coordinate smaller or equal to $P_{r_{i}}$'s y coordinate + $P_{r_{i}}$'s third neighbor.
+
+An optimization similar to step 5 is possible here, as we can disregard points with absolute coordinate difference larger than current third minimum distance.  Thus we don't have to perform expensive distance computation.
+\item Go through $M$ and output answers.
+\end{enumerate}
+
+\section{Analysis}
+
+$N$ = number of points in input.  
+\begin{itemize}
+\item Step 2 must take $O(Nlog(N))$ time as we are doing simple sort two times.  
+\item Step 4 is constant time as $xf$ is already sorted and its trivial to extract $x_{min}$ and $x_{max}$ for each bin.  
+\item Steps 5 and 6 are $O( \left \lceil \frac{N}{B} \right \rfloor B^2) \approx  O(NB) $, as for each point in a bin we must consider all other points in a bin, and there are $  \left \lceil \frac{N}{B} \right \rfloor $ bins.
+\item Step 6's run time depends on size of $redo$ set, which in turn depends on the choice of $B$ and layout of input points.  In worst case $|redo|=N$.  For every point we use binary search inside $yf$ to find first point that is worth considering.  This takes $O(log_{2}(N))$ steps.  In worst case the range inside $yf$ is $N$, therefore worst case complexity is $O(N^2)$.  In practice, however, this range is a lot smaller than $N$ given a close to uniform distribution of points across 2d plane.  We also use optimization whereby we don't have to compute distance between every other point in range for some $P_{r_{i}}$ , but throw out some based on absolute difference in their x and y coordinate from $P_{r_{i}}$.  Therefore the number of actual distance computations is always less than $O(N^2)$, but we may still need to consider that many points in worst case.
+\end{itemize}
+
+Run time of the whole algorithm is $O(N^2)$ in worst case, but on average it runs pretty efficiently with a good choice of $B$.  Small $B$ tends to cause the size of $redo$ to grow.  However a very large $B$ dominates the run-time and a subsequent small size of $redo$ doesn't matter.  For the test case given by Dr. Juedes on Blackboard I have determined an optimal value of $B$ to be somewhere around a $[100,1,000]$.  With such $B$ the algorithm finishes the given input in under a second on Intel i7 950 CPU @ 3.05 GHz. and under 2 seconds on Intel Core duo @ 2.20 GHz.  
+
+I suspect there are much more efficient algorithms than this possible as people on Facebook board seem to report much better running times than mine.  There are also a few optimizations possible for my current general approach.  During Step 6 I may re-evaluate points that I have already considered in Step 5.  If I could find a way to limit that, it would probably improve my running time significantly.
+
+However, once the facebook bot is finally back up again I am pretty confident that my solution should pass.
+
+\bibliographystyle{acm}
+\bibliography{report_ref}
+\end{document}

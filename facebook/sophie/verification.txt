@@ -1,0 +1,65 @@
+Example tests taken from http://www.facebook.com/topic.php?uid=15325934266&topic=7058
+
+sample_in.txt is sample case from problem description and has answer 6.00
+in.txt has answer 38.20
+in2.txt has answer 115.86
+in3.txt has answer 76.18
+in4.txt has answer -1
+
+outputs:
+
+lev@zao:~/prime/alg_cmp/facebook/sophie$ make
+g++ -O3 -o sophie sophie.cc
+lev@zao:~/prime/alg_cmp/facebook/sophie$ g++ -O3 -o sophie_old sophie_old.cc 
+lev@zao:~/prime/alg_cmp/facebook/sophie$ time ./sophie in.txt
+38.20
+
+real	0m0.149s
+user	0m0.116s
+sys	0m0.028s
+lev@zao:~/prime/alg_cmp/facebook/sophie$ time ./sophie in2.txt
+115.86
+
+real	0m1.448s
+user	0m1.220s
+sys	0m0.220s
+lev@zao:~/prime/alg_cmp/facebook/sophie$ time ./sophie in3.txt
+76.18
+
+real	0m0.010s
+user	0m0.004s
+sys	0m0.000s
+lev@zao:~/prime/alg_cmp/facebook/sophie$ time ./sophie in4.txt
+-1.00
+
+real	0m0.006s
+user	0m0.000s
+sys	0m0.004s
+lev@zao:~/prime/alg_cmp/facebook/sophie$ time ./sophie_old in.txt
+38.20
+
+real	0m0.051s
+user	0m0.052s
+sys	0m0.000s
+lev@zao:~/prime/alg_cmp/facebook/sophie$ time ./sophie_old in2.txt
+115.86
+
+real	0m0.161s
+user	0m0.148s
+sys	0m0.008s
+lev@zao:~/prime/alg_cmp/facebook/sophie$ time ./sophie_old in3.txt
+76.18
+
+real	0m0.007s
+user	0m0.004s
+sys	0m0.000s
+lev@zao:~/prime/alg_cmp/facebook/sophie$ time ./sophie_old in4.txt
+-1.00
+
+real	0m0.006s
+user	0m0.004s
+sys	0m0.000s
+lev@zao:~/prime/alg_cmp/facebook/sophie$ ./sophie sample_in.txt 
+6.00
+lev@zao:~/prime/alg_cmp/facebook/sophie$ ./sophie_old sample_in.txt 
+6.00

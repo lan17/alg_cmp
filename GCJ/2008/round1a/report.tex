@@ -1,0 +1,40 @@
+\documentclass[11pt]{article}
+
+\usepackage{epsf,amsfonts,amssymb,hyperref}
+
+\begin{document}
+\title{Solution to "Milkshakes"\cite{milkshakes} problem from Google Code Jam 2008 round1a.}
+\author{Lev A Neiman}
+\maketitle
+
+\section{Problem Statement}
+
+Given number of milkshake flavors $N$, and list of preferences for $M$ customers where each customer may at most have one malted flavor preference, find an assignment for each milkshake flavor such that number of malted flavors is minimized and all customers are satisfied.  Customer is satisfied if he has a preference for a flavor of milkshake who's maltness or lack of it matches the assignment.  
+
+\section{Solution}
+
+This looks at first glance like a more general SAT problem\cite{SAT}.  However important observation is that problem statement tells that each customer may at most have only one malted flavor preference.  This makes this problem much easier and equivalent to a Horn clause\cite{horn}.  Satisfiability for a Horn clause is solvable in linear time, however my implementation is a bit more naive.
+
+Basic operation is as follows:
+\begin{enumerate}
+\item Start with configuration $D=(False,False,....False), |D|=N$.
+\item While there is a customer that is not satisfied with $D$ configuration:
+\begin{enumerate}
+\item Let $m$ = index of customer's malted flavor preference.  If there is no malted preference $m=-1$
+\item If $m=-1$ return IMPOSSIBLE.  In this case we cannot possibly satisfy all customers.
+\item Otherwise set $D[m]$ to True
+\end{enumerate} 
+\item If all customers are satisfied then $D$ is guaranteed to contain smallest number of $True$ values.
+\end{enumerate}
+
+\section{Analysis}
+
+It is possible to implement this algorithm in $O(N)$ time, however my implementation is somewhere in between $O(N)$ and $O(NM)$.  However it is enough to pass large test case in 7 seconds in Java and 32 seconds in Python.
+
+I have included a Python solution (which is easier to read) and Java solution (which is much harder to read because it includes a whole bunch of other problem implementations).
+
+As verification i included output for large test case which you can verify on GCJ site.
+
+\bibliographystyle{acm}
+\bibliography{report_ref}
+\end{document}

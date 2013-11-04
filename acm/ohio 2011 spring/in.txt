@@ -1,0 +1,4 @@
+100 7 15 95
+CC 50 CC 50 C 193 CC 108 C 1 C 1 C 1 C 1 C 1
+C 1 C 1 C 1 C 1 C 1 C 1 C 1 C 1 C 1 C 1 C 1 C 1 C 1 C 1 C 1 ?
+0

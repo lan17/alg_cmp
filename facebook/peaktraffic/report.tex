@@ -1,0 +1,62 @@
+\documentclass[11pt]{article}
+
+\usepackage{epsf,amsfonts,amssymb,hyperref}
+
+\begin{document}
+\title{Solution to "Peak Traffic" Facebook puzzle\cite{peaktraffic}}
+\author{Lev A Neiman}
+
+\maketitle
+
+\section{Problem Statement}
+
+Given a directed graph, enumerate all maximal cliques.  Clique is defined as group of nodes in graph that have edges to every other node in clique.  Maximal clique is a clique that is impossible to augment by adding an additional node.
+
+In the base case of 2 nodes, both of them need to have directed edge to each other to be considered a clique.
+
+\section{Solution}
+
+My solution can be explained as a four step process.
+
+\begin{enumerate}
+\item Read input file in.  Enumerate every node with an id.  Map all ids back to string name of node.  Construct directed graph while parsing input data.
+\item Enumerate all cliques in graph.
+\begin{enumerate}
+\item This is best done by further processing directed graph obtained in previous part.  A simple and good reduction is to convert directed graph into a directed acyclic graph.  To do this follow this procedure:
+\begin{enumerate}
+\item Original graph $G = (V,E)$ where $e\in E = (i,j)$ is a tuple describing directed edge from $v_{i} \to v_{j}$ where $v_{i},v_{j}\in V$.
+\item We want to obtain $G' = (V',E')$ such that:
+\begin{enumerate}
+\item $V'=V$.
+\item $e'\in E' = (i,j)$ iff $(i,j)\in E$, $(j,i)\in E$ and $j > i$.
+\end{enumerate}
+\item We can construct a simple algorithm that simply iterates through all edges in $E$ and constructs $G'$ satisfying conditions above.
+\end{enumerate}
+\item Now that we have $G'$ we will use it to enumerate all possible cliques in $G$ via a simple recursive algorithm:
+\begin{enumerate}
+\item Function FindCliques.  Input = ($G$, $i$).  $G=(V,E)$ is a DAG subgraph and $i$ is index of vertex that called current incarnation.  Return a list $L$ of all cliques $C$, where $\forall i \in C, v_{i}\in V$.
+\item For all every vertex $v_{i}$ in $V$ do:
+\begin{enumerate}
+\item count = $|e\in (i,j)\in E|$.  (all edges coming out of $v_{i}$.
+\item if count == 1 then add and return a list of one 2-clique $(i,j)$ where j is the only child of $v_{i}$).
+\item Otherwise add all $(i,j)$ 2-cliques.  $j$ is index of some child of $v_{i}$.
+\item Form new subgraph $G'=(V',E')$ s.t. $V'=(v_{j}..), \forall j \in (i,j) \in E$.  $E'=(j,k)$ s.t. $(i,k) \in E$ and $(j,k) \in E$.  In other words we new graph will contain all children of $v_{i}$ and the edges for each child in new graph will be intersection of old edges for child and $v_{i}$'s children.  
+\item Set $L' = FindCliques( G', i )$.
+\item For every clique $\in L'$ add $i$. 
+\item Add L' to L and return L.
+\end{enumerate}
+\end{enumerate}
+\end{enumerate}
+\item Remove cliques that are not maximal.  This is pretty easy.  Just look at all pair of cliques and see if any of them is a proper subset of another.  If so remove the one that is smaller.  In code I have optimized this part so it is fast.  If you do it on all cliques returned by FindCliques this would be rather slow.
+\item Output maximal cliques as per specification in problem statement.
+\end{enumerate}
+
+\section{Analysis}
+
+In my code I have combined step 3 and 4, so that finding maximum cliques is only a bit slower than finding all cliques.  My algorithm is bounded by number of possible cliques in the graph which is $3^{n/3}$ where n is number of vertices.  However it should be polynomial time with respect to number of cliques.  
+
+My code finishes large input given on Blackboard in about 8 seconds on i7 950 @3GHz computer.
+
+\bibliographystyle{acm}
+\bibliography{report_ref}
+\end{document}
