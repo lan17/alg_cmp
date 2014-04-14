@@ -1,4 +1,4 @@
-package lev;
+package com.levneiman.alg_cmp;
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
@@ -1111,8 +1111,8 @@ public class Problems
 		try
 		{
 			solveProblem(
-					new Problems.GCJ_2013.Round1B.Osmos(),
-					"input.in", "output.txt" );
+					new GCJ_2014.QualificationRound.D(),
+					"input.txt", "output.txt" );
 		}
 		catch( Exception e )
 		{
