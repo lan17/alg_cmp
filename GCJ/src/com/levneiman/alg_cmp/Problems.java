@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.regex.*;
 import java.lang.reflect.Array;
 import java.math.*;
-
 import java.awt.geom.*;
 
 /**
@@ -23,102 +22,186 @@ public class Problems
 		public void solve( InputStream in, PrintStream out ) throws Exception;
 	}
 
-	public interface acm_problem extends Problem
+	public abstract static class GCJProblem implements Problem
 	{
+	    private static final String ANSWER_FORMAT = "Case #%d: %s";
 
+        @Override
+        public void solve(InputStream in, PrintStream out) throws Exception
+        {
+            Scanner scanner = new Scanner(in);
+            int T = Integer.parseInt(scanner.nextLine());
+            SO.println(String.format("Will attempt to solve %d cases.  Godspeed.", T));
+            for (int CASE = 1; CASE <=T; ++CASE)
+            {
+                SO.println(String.format("=== Doing case %d ===", CASE));
+                out.println(String.format(ANSWER_FORMAT, CASE, solve(scanner)));
+            }
+        }
+
+        public abstract String solve(Scanner in);
 	}
 
-	public interface facebook_problem extends Problem
-	{
-	}
+	public interface acm_problem extends Problem {}
 
-	public static class facebook_problems
-	{
-		public static class liarliar implements facebook_problem
-		{
+	public interface facebook_problem extends Problem {}
 
-			boolean find_liars( Map< String, Set< String >> people,
-					Set< String > peeps, Set< String > liars,
-					Set< String > truthers, String liar )
-			{
-				if( !peeps.contains( liar ) )
-					return false;
-				System.out.println( "LIAR ! " + liar );
-				peeps.remove( liar );
-				liars.add( liar );
-				for( String truthee : people.get( liar ) )
-				{
-					if( liars.contains( truthee ) )
-						return false;
-					System.out.println( "TRUTHER ! " + truthee );
-					truthers.add( truthee );
-					peeps.remove( truthee );
-					for( String liarz : people.get( truthee ) )
-					{
-						find_liars( people, peeps, liars, truthers, liarz );
-					}
-				}
-				return true;
-			}
-
-			void printPeople( Map< String, Set< String >> people )
-			{
-				for( String person : people.keySet() )
-				{
-					System.out.println( person + ":" );
-					for( String liar : people.get( person ) )
-					{
-						System.out.println( "\t" + liar );
-					}
-				}
-			}
-
-			@Override
-			public void solve( InputStream inFile, PrintStream out )
-					throws Exception
-			{
-				String input = Util.Stream2String( inFile );
-				StringTokenizer tokenizer = new StringTokenizer( input, " \n\r" );
-				int n;
-				Map< String, Set< String >> people = new HashMap< String, Set< String >>();
-				Set< String > peeps = new HashSet< String >();
-				n = Integer.parseInt( tokenizer.nextToken() );
-				String first_liar = null;
-				while( tokenizer.hasMoreTokens() )
-				{
-					String name = tokenizer.nextToken();
-					peeps.add( name );
-					int m = Integer.parseInt( tokenizer.nextToken() );
-					if( m > 0 && first_liar == null )
-						first_liar = name;
-					Set liars = new HashSet< String >();
-					people.put( name, liars );
-					for( int i = 0; i < m; ++i )
-					{
-						liars.add( tokenizer.nextToken() );
-					}
-				}
-				// printPeople( people );
-				Set< String > liars, goodies;
-				liars = new HashSet< String >();
-				goodies = new HashSet< String >();
-				find_liars( people, peeps, liars, goodies, first_liar );
-				while( peeps.size() > 0 )
-				{
-					String liar = peeps.iterator().next();
-					find_liars( people, peeps, liars, goodies, liar );
-				}
-				System.out.print( Math.max( liars.size(), goodies.size() )
-						+ " " );
-				System.out.print( Math.min( liars.size(), goodies.size() ) );
-
-			}
-
-		}
-	}
 
 	public static class Util< T >
 	{
+
+	    public static class PrettyPrint
+	    {
+	        public static <E> String print(E[] arr)
+	        {
+	            String ret = "";
+	            for (int i = 0; i < arr.length; ++i)
+	            {
+	                ret += arr[i].toString() + ", ";
+	            }
+	            return ret;
+	        }
+	    }
+
+	    /**
+	     * Mmmmmmmmulti Map!
+	     * @author lneiman
+	     *
+	     * @param <T>
+	     * @param <V>
+	     */
+	    public static class MultiMap< T, V> implements Map
+	    {
+	        public static interface CollectionFactory<V>
+	        {
+	            Collection<V> makeNewEntry();
+	        }
+
+	        public static <V> CollectionFactory<V> HASH_SET()
+	        {
+	            return new CollectionFactory<V>()
+                {
+                    @Override
+                    public Collection<V> makeNewEntry() {
+                       return new HashSet<V>();
+                    }
+                };
+	        }
+
+	        public static <V> CollectionFactory<V> ARRAY_LIST()
+            {
+                return new CollectionFactory<V>()
+                {
+                    @Override
+                    public Collection<V> makeNewEntry() {
+                       return new ArrayList<V>();
+                    }
+                };
+            }
+
+	        Map<T,Collection<V>> data = null;
+	        CollectionFactory<V> factory;
+
+	        Class<? extends Collection<V>> collType;
+
+	        public MultiMap()
+	        {
+	            this(MultiMap.<V>ARRAY_LIST());
+	        }
+
+	        public MultiMap(CollectionFactory<V> factory)
+	        {
+	            data = new HashMap<T,Collection<V>>();
+	            this.factory = factory;
+	        }
+
+            @Override
+            public void clear()
+            {
+                data.clear();
+            }
+
+            @Override
+            public boolean containsKey(Object key)
+            {
+                return data.containsKey(key);
+            }
+
+            @Override
+            public boolean containsValue(Object value)
+            {
+                for (T key : data.keySet())
+                {
+                    if (data.get(key).contains(value))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public Set<java.util.Map.Entry<T, Collection<V>>> entrySet()
+            {
+                return data.entrySet();
+            }
+
+            @Override
+            public Collection<V> get(Object key)
+            {
+                return data.get(key);
+            }
+
+            @Override
+            public boolean isEmpty()
+            {
+                return data.isEmpty();
+            }
+
+            @Override
+            public Set<T> keySet()
+            {
+                return data.keySet();
+            }
+
+            @Override
+            public Object put(Object key, Object value)
+            {
+                Collection<V> coll = data.get(key);
+                if (coll == null)
+                {
+                    coll = factory.makeNewEntry();
+                    data.put((T)key, coll);
+                }
+                coll.add((V)value);
+                return null;
+            }
+
+            @Override
+            public void putAll(Map m)
+            {
+
+            }
+
+            @Override
+            public Object remove(Object key)
+            {
+                return data.remove(key);
+            }
+
+            @Override
+            public int size()
+            {
+                return data.size();
+            }
+
+            @Override
+            public Collection<Collection<V>> values() {
+                return null;
+            }
+
+
+	    }
 
 		public static class Pair< T, U >
 		{
@@ -340,7 +423,7 @@ public class Problems
 		try
 		{
 			solveProblem(
-					new GCJ_2014.QualificationRound.D(),
+					new GCJ_CHINA_2014.C(),
 					"input.txt", "output.txt" );
 		}
 		catch( Exception e )
@@ -383,7 +466,7 @@ public class Problems
 		double duration = ( end - start ) / 1e3;
 
 		if( gcj_problem )
-			System.out.println( "Problem was solved in " + duration
+			SO.println( "Problem was solved in " + duration
 					+ " seconds." );
 	}
 }
