@@ -72,7 +72,8 @@ public class Problems
 	     * @param <T>
 	     * @param <V>
 	     */
-	    public static class MultiMap< T, V> implements Map
+	    @SuppressWarnings( "rawtypes" )
+		public static class MultiMap< T, V> implements Map, Cloneable
 	    {
 	        public static interface CollectionFactory<V>
 	        {
@@ -115,6 +116,10 @@ public class Problems
 	        {
 	            data = new HashMap<T,Collection<V>>();
 	            this.factory = factory;
+	        }
+	        
+	        public CollectionFactory<V> getFactory() {
+	        	return factory;
 	        }
 
             @Override
@@ -201,6 +206,39 @@ public class Problems
             public Collection<Collection<V>> values() {
                 return null;
             }
+            
+            /**
+             * shallow copy of all keys and values.
+             */
+            @Override
+            public MultiMap<T,V> clone() 
+            {
+            	MultiMap<T,V> ret = new MultiMap<T,V>(getFactory());
+            	for (T key : keySet())
+            	{
+            		for (V val : get(key)) 
+            		{
+            			ret.put( key, val );
+            		}
+            	}
+            	return ret;
+            }
+            
+            @Override
+            public String toString()
+            {
+            	String ret = "";
+            	for (T key : keySet())
+            	{
+            		ret += key + ":  ";
+            		for (V val : get(key)) 
+            		{
+            			ret += val +", ";
+            		}
+            		ret += "\n";
+            	}
+            	return ret;
+            }
 
 
 	    }
@@ -252,6 +290,11 @@ public class Problems
 			{
 				return hash;
 			}
+			
+			public static <T,U> Pair<T,U> make(T t, U u)
+			{
+				return new Pair<T,U>(t,u);
+			}
 
 		}
 
@@ -294,6 +337,13 @@ public class Problems
 				throw new IllegalArgumentException(
 						"passed arguments are not Comparable!" );
 			}
+		}
+		
+		public static int numberOfSetBits(int i)
+		{
+		     i = i - ((i >> 1) & 0x55555555);
+		     i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+		     return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 		}
 
 		/**
@@ -462,7 +512,7 @@ public class Problems
 		try
 		{
 			solveProblem(
-					new GCJ_2014.Round1A.A(),
+					new GCJ_2014.Round1A.C(),
 					"input.txt", "output.txt" );
 		}
 		catch( Exception e )

@@ -6,12 +6,20 @@ import static com.levneiman.alg_cmp.Problems.SO;
 
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
 
 import com.levneiman.alg_cmp.Problems.GCJProblem;
+import com.levneiman.alg_cmp.Problems.Util;
+import com.levneiman.alg_cmp.Problems.Util.MultiMap;
+import com.levneiman.alg_cmp.Problems.Util.Pair;
 
 public class GCJ_2014
 {
@@ -208,33 +216,140 @@ public class GCJ_2014
 	{
 		public static class A extends GCJProblem
 		{
-
+			Set<Long> flip(Long [] arr, Long i)
+			{
+				 Set<Long> ret = new HashSet<Long>();
+				 for (int j = 0; j < arr.length; ++j)
+				 {
+					 ret.add(arr[j] ^ i);
+				 }
+				 return ret;
+			}
+			
+			boolean fits(Long [] arr, Long i, Set<Long> devices)
+			{
+				Set<Long> newOutlets = flip(arr,i);
+				 newOutlets.retainAll( devices );
+				 return newOutlets.size() == devices.size();
+			}
+			
 			@Override
 			public String solve( Scanner in )
 			{
-				return null;
+				int N, L;
+				N = in.nextInt();
+				L = in.nextInt();
+				Long [] outlets = new Long[N];
+				Long [] devices = new Long[N];
+				
+				Set<Long> sO = new HashSet<Long>();
+				Set<Long> sD = new HashSet<Long>();
+				
+				for ( int i = 0; i < N; ++i ) 
+				{
+					outlets[i] = in.nextLong(2);
+					sO.add(outlets[i]);
+				}
+				for (int i = 0; i < N; ++i ) 
+				{
+					devices[i] = in.nextLong( 2 );
+					sD.add(devices[i]);
+				}
+				int min = Integer.MAX_VALUE;
+				int i = 0;
+				for (int j = 0; j < N; ++j ) 
+				{
+					Long mask = outlets[i] ^ devices[j];
+					if (fits(outlets, mask, sD))
+					{
+						int numbits = 0;
+						for (long k = 0; k < 50; ++k )
+						{
+							if ((mask & (((long)1)<<k)) > 0 )
+							{
+								++numbits;
+							}
+						}
+						
+					 min = Math.min(min, numbits);
+					}
+				}
+				if (min > L ) {
+					return "NOT POSSIBLE";
+				}
+				else return Integer.toString( min );
 			}
 			
 		}
 		
 		public static class B extends GCJProblem
-		{
-
+		{			
+			Pair<Integer,Integer> solve(MultiMap<Integer,Integer> G, int root, HashSet<Integer> seen)
+			{
+				seen.add(root);
+				
+				int nodes = 1;
+				TreeSet<Integer> children = new TreeSet<Integer>();
+				for (int child : G.get( root ))
+				{
+					if (seen.contains(child))
+					{
+						continue;
+					}
+					Pair<Integer,Integer> res = solve(G, child, seen);
+					children.add(res.getSecond()-res.getFirst());
+					nodes += res.getSecond();
+				}
+				int remove = 0;
+				if (children.size() <= 1)
+				{
+					return Pair.make( nodes - 1, nodes );
+				}
+				return Pair.make( nodes - 1 - children.last() - children.lower( children.last() ), nodes );
+				
+			}
+			
 			@Override
 			public String solve( Scanner in )
 			{
-				return null;
+				int N = in.nextInt();
+				MultiMap<Integer,Integer> G = new MultiMap<Integer,Integer>(MultiMap.<Integer>ARRAY_LIST());
+				for ( int i = 0; i < N -1; ++i) 
+				{
+					int A, B;
+					A = in.nextInt();
+					B = in.nextInt();
+					G.put( A, B );
+					G.put( B, A );
+				}				
+				
+				int ret = Integer.MAX_VALUE;
+				//SO.println(G);
+				for (int i = 1; i <=N; ++i)
+				{
+					int tt = solve(G, i, new HashSet<Integer>()).getFirst();
+					ret = Math.min(ret,tt );
+				}
+				return Integer.toString(ret);
 			}
 			
 		}
 		
 		public static class C extends GCJProblem
 		{
-
+			
 			@Override
 			public String solve( Scanner in )
 			{
-				return null;
+				int N = in.nextInt();
+				int cnt = 0;
+				for ( int i = 0; i < N; ++i )
+				{
+					if (in.nextInt() > i) ++cnt;
+				}
+				int cutoff = N/2 + N/100 + 5;
+				SO.println(cutoff);
+				return cnt > cutoff ? "BAD" : "GOOD";
 			}
 			
 		}
