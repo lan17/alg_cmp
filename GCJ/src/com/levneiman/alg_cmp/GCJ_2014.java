@@ -3,12 +3,15 @@ package com.levneiman.alg_cmp;
 import java.io.InputStream;
 
 import static com.levneiman.alg_cmp.Problems.SO;
+
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
+
+import com.levneiman.alg_cmp.Problems.GCJProblem;
 
 public class GCJ_2014
 {
@@ -200,4 +203,41 @@ public class GCJ_2014
 
 		}
 	}
+
+	public static class Round1A
+	{
+		public static class A extends GCJProblem
+		{
+
+			@Override
+			public String solve( Scanner in )
+			{
+				return null;
+			}
+			
+		}
+		
+		public static class B extends GCJProblem
+		{
+
+			@Override
+			public String solve( Scanner in )
+			{
+				return null;
+			}
+			
+		}
+		
+		public static class C extends GCJProblem
+		{
+
+			@Override
+			public String solve( Scanner in )
+			{
+				return null;
+			}
+			
+		}
+	}
+
 }

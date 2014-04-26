@@ -6,6 +6,8 @@ import java.lang.reflect.Array;
 import java.math.*;
 import java.awt.geom.*;
 
+import com.levneiman.alg_cmp.GCJ_2014.QualificationRound.A;
+
 /**
  * Google Code Jam problems solved (sometimes incorrectly) by Lev. A. Neiman.
  *
@@ -413,25 +415,6 @@ public class Problems
 
 	}
 
-
-	/**
-	 * @param args
-	 * @throws IOException
-	 */
-	public static void main( String [] args )
-	{
-		try
-		{
-			solveProblem(
-					new GCJ_CHINA_2014.C(),
-					"input.txt", "output.txt" );
-		}
-		catch( Exception e )
-		{
-			e.printStackTrace();
-		}
-	}
-
 	public static void solveProblem( Problem prob, String input_file,
 			String output_file ) throws Exception
 	{
@@ -468,5 +451,23 @@ public class Problems
 		if( gcj_problem )
 			SO.println( "Problem was solved in " + duration
 					+ " seconds." );
+	}
+	
+	/**
+	 * @param args
+	 * @throws IOException
+	 */
+	public static void main( String [] args )
+	{
+		try
+		{
+			solveProblem(
+					new GCJ_2014.Round1A.A(),
+					"input.txt", "output.txt" );
+		}
+		catch( Exception e )
+		{
+			e.printStackTrace();
+		}
 	}
 }
