@@ -346,6 +346,13 @@ public class Problems
 		     return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 		}
 
+        public static int numberOfSetBits(long i) 
+        {
+            int ret = numberOfSetBits((int)i);
+            ret += numberOfSetBits((int)(i>>32));
+            return ret;
+        }
+
 		/**
 		 * Convert number in given base given as a string into base 10.
 		 *
@@ -509,10 +516,11 @@ public class Problems
 	 */
 	public static void main( String [] args )
 	{
+	    
 		try
 		{
 			solveProblem(
-					new GCJ_2014.Round1A.C(),
+					new GCJ_2014.Round1A.A(),
 					"input.txt", "output.txt" );
 		}
 		catch( Exception e )

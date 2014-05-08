@@ -262,16 +262,9 @@ public class GCJ_2014
 					Long mask = outlets[i] ^ devices[j];
 					if (fits(outlets, mask, sD))
 					{
-						int numbits = 0;
-						for (long k = 0; k < 50; ++k )
-						{
-							if ((mask & (((long)1)<<k)) > 0 )
-							{
-								++numbits;
-							}
-						}
+						int numbits = Util.numberOfSetBits(mask);
 						
-					 min = Math.min(min, numbits);
+						min = Math.min(min, numbits);
 					}
 				}
 				if (min > L ) {
@@ -354,5 +347,69 @@ public class GCJ_2014
 			
 		}
 	}
+
+    public static class Round1B {
+
+        public static class A extends GCJProblem {
+
+            private String smallest(String a) {
+                String ret = "";
+                char t = a.charAt(0);
+                for (int i = 1; i < a.length();) {
+                    ret += t;
+                    while (i < a.length() && t == a.charAt(i)) {
+                        ++i;
+                    }
+                    if (i < a.length()) {
+                        t = a.charAt(i);
+                    }
+                }
+
+                return ret;
+            }
+
+            private int dist(String a, String b) {
+                int ret = Math.abs(a.length() - b.length());
+                if (ret > 0)
+                    return ret;
+                for (int i = 0; i < Math.min(a.length(), b.length()); ++i) {
+                    ret += a.charAt(i) == b.charAt(i) ? 0 : 2;
+                }
+                return ret;
+            }
+
+            @Override
+            public String solve(Scanner in) {
+                int N = Integer.parseInt(in.nextLine());
+
+                String[] words = new String[N];
+                String small;
+                int ret = Integer.MAX_VALUE;
+                for (int i = 0; i < N; ++i) {
+                    words[i] = in.nextLine().trim();
+                }
+                small = smallest(words[0]);
+                ret = words[0].length() - small.length();
+                for (int i = 1; i < N; ++i) {
+                    String small2 = smallest(words[i]);
+                    if (!small2.equals(small)) {
+                        return "Fegla Won";
+                    }
+                    ret += words[i].length() - small.length();
+
+                }
+                for (int i = 0; i < N; ++i) {
+                    int num = 0;
+                    for (int j = 0; j < N; ++j) {
+                        num += dist(words[i], words[j]);
+                    }
+                    ret = Math.min(ret, num);
+                }
+
+                return Integer.toString(ret);
+            }
+
+        }
+    }
 
 }
