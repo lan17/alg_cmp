@@ -469,6 +469,14 @@ public class Problems
 			a[i] = a[k];
 			a[k] = t;
 		}
+		
+		
+		//TODO: finish implementing.
+		public static int editDistance(String a, String b, int options) {
+		    int [][] mem = new int[a.length()][b.length()];
+		    
+		    return -1;
+		}
 
 	}
 
