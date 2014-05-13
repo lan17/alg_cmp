@@ -372,12 +372,6 @@ public class Problems
 			return ret;
 		}
 
-		public static void main( String [] arg )
-		{
-			Integer [] a = { 0, 1, 2, 3 };
-			reverseArray( a, 0, a.length );
-			System.out.println( Arrays.toString( a ) );
-		}
 
 		public static boolean next_permutation( Comparable [] s )
 		{
@@ -470,12 +464,52 @@ public class Problems
 			a[k] = t;
 		}
 		
+		public static boolean testBit(int a, int i)
+		{
+			return (a & (1<<i)) > 0;	
+		}
+		
+		public static boolean testBit(long a, int i)
+		{
+			return (a & (1L<<((long)i))) > 0;
+		}
+		
 		
 		//TODO: finish implementing.
-		public static int editDistance(String a, String b, int options) {
-		    int [][] mem = new int[a.length()][b.length()];
+		public static int editDistance(String a, String b, int deletionCost, int insertionCost, int substitutionCost) {
+			final int m = a.length();
+			final int n = b.length();
+		    int [][] mem = new int[m+1][n+1];
 		    
-		    return -1;
+		    for (int i = 0; i <= m; ++i) for (int j = 0; j <= n; ++j) mem[i][j] = 0;
+		    for (int i = 1; i <= m; ++i)
+		    {
+		    	mem[i][0] = i;		    	
+		    }
+		    for (int j = 1; j <= n; ++j)
+		    {
+		    	mem[0][j] = j;
+		    }
+		    
+		    for (int j = 1; j <= n; ++j)
+		    {
+		    	for (int i = 1; i <= m; ++i )
+		    	{
+		    		if (a.charAt( i -1 ) == b.charAt( j -1 ) )
+		    		{
+		    			mem[i][j] = mem[i-1][j-1];
+		    		}
+		    		else
+		    		{
+		    			int min = Integer.MAX_VALUE;
+		    			min = Math.min(mem[i-1][j] + deletionCost, min);
+		    			min = Math.min(mem[i][j-1] + insertionCost, min);
+		    			min = Math.min(mem[i-1][j-1] + substitutionCost, min);
+		    			mem[i][j] = min;
+		    		}
+		    	}
+		    }
+		    return mem[m][n];
 		}
 
 	}
@@ -528,7 +562,7 @@ public class Problems
 		try
 		{
 			solveProblem(
-					new GCJ_2014.Round1A.A(),
+					new GCJ_2014.Round1C.B(),
 					"input.txt", "output.txt" );
 		}
 		catch( Exception e )

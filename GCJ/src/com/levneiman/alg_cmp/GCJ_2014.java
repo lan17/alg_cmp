@@ -5,11 +5,14 @@ import java.io.InputStream;
 import static com.levneiman.alg_cmp.Problems.SO;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
@@ -352,64 +355,317 @@ public class GCJ_2014
 
         public static class A extends GCJProblem {
 
-            private String smallest(String a) {
+            public static  String smallest(String a, List<Integer> charLengths) {
                 String ret = "";
-                char t = a.charAt(0);
-                for (int i = 1; i < a.length();) {
-                    ret += t;
-                    while (i < a.length() && t == a.charAt(i)) {
-                        ++i;
-                    }
-                    if (i < a.length()) {
-                        t = a.charAt(i);
-                    }
-                }
-
-                return ret;
-            }
-
-            private int dist(String a, String b) {
-                int ret = Math.abs(a.length() - b.length());
-                if (ret > 0)
-                    return ret;
-                for (int i = 0; i < Math.min(a.length(), b.length()); ++i) {
-                    ret += a.charAt(i) == b.charAt(i) ? 0 : 2;
+                for (int i = 0; i < a.length();)
+                {
+                	int j = i;
+                	while ((j < a.length()) && (a.charAt( j ) == a.charAt(i))) ++j;
+                	ret += a.charAt( i );
+                	charLengths.add( j-i );
+                	i = j;
                 }
                 return ret;
             }
 
             @Override
             public String solve(Scanner in) {
-                int N = Integer.parseInt(in.nextLine());
+                final int N = Integer.parseInt(in.nextLine());
+                SO.println(N);
 
-                String[] words = new String[N];
-                String small;
-                int ret = Integer.MAX_VALUE;
-                for (int i = 0; i < N; ++i) {
-                    words[i] = in.nextLine().trim();
+                String[] words = new String[N];                
+                List<List<Integer>> charLengths = new ArrayList<List<Integer>>(N);               
+                
+                for (int i = 0; i < N; ++i) 
+                {
+                	charLengths.add( new ArrayList<Integer>() );                	
                 }
-                small = smallest(words[0]);
-                ret = words[0].length() - small.length();
+                
+                String smallWord = smallest(in.nextLine().trim(), charLengths.get( 0 ));
+                
+                boolean bad = false;
                 for (int i = 1; i < N; ++i) {
-                    String small2 = smallest(words[i]);
-                    if (!small2.equals(small)) {
-                        return "Fegla Won";
+                    words[i] = in.nextLine().trim();
+                  //  SO.println(words[i]);
+                    if (!smallWord.equals( smallest(words[i], charLengths.get(i)))) 
+                    {
+                    	bad = true;
                     }
-                    ret += words[i].length() - small.length();
-
                 }
-                for (int i = 0; i < N; ++i) {
-                    int num = 0;
-                    for (int j = 0; j < N; ++j) {
-                        num += dist(words[i], words[j]);
-                    }
-                    ret = Math.min(ret, num);
+                if (bad)
+                {
+                	return "Fegla Won";                
                 }
-
+                
+                int ret = 0;
+                for (int i = 0; i < smallWord.length(); ++i)
+                {
+                	int charMin = Integer.MAX_VALUE;
+                	for (int l = 1; l <= 100; ++l) 
+                	{
+                		int cunt = 0;
+                		for (int j = 0; j < N; ++j)
+                		{
+                			cunt += Math.abs( l - charLengths.get(j).get( i ) );
+                		}
+                		charMin = Math.min(charMin, cunt);
+                	}
+                	ret += charMin;
+                }
+                
                 return Integer.toString(ret);
             }
 
         }
+    
+        public static class B extends GCJProblem 
+        {
+        	
+        	long brute( long A, long B, long K)
+        	{
+        		long cunt = 0;
+        		for (long a = 0; a < A; ++a) 
+        		{
+        			for (long b = 0; b < B; ++b)
+        			{
+        				if ((a&b) < K)
+        				{
+        					SO.println(String.format("%d - %d", a, b));
+        					++cunt;
+        				}
+        			}
+        		}
+        		return cunt;
+        	}
+        	
+        	int highestBit(long X)
+        	{
+        		int ret = 63;
+        		while (ret >= 0 && !Util.testBit(X,ret))
+        		{
+        			--ret;
+        		}
+        		return ret;        			
+        	}
+        	
+        	long smart( long A, long B, long K)
+        	{
+        		A -= 1;
+        		B -= 1;
+        		K -= 1;
+        		int aL, bL, kL;
+        		aL = highestBit(A);
+        		bL = highestBit(B);
+        		kL = highestBit(K);
+        		
+        		long ways = 0;
+        		for (int i = 0; i <= Math.max( Math.max(aL,bL), kL ); ++i)
+        		{
+        			boolean bitSet = Util.testBit( K, i );
+        			
+        		}       		
+        		 		
+        		return ways;
+        	}
+
+			@Override
+			public String solve( Scanner in )
+			{
+				long A, B, K;
+				A = in.nextLong();
+				B = in.nextLong();
+				K = in.nextLong();
+				
+				return Long.toString( brute(A,B,K) );
+			}
+        	
+        }
+    }
+    
+    public static class Round1C
+    {
+    	public static class A extends GCJProblem
+    	{
+
+			@Override
+			public String solve( Scanner in )
+			{
+				
+				return null;
+			}
+    		
+    	}
+    	
+    	public static class B extends GCJProblem
+    	{
+    		final static int factor = 1000000007;
+    		
+    		class DiGraph
+    		{
+    			int N;
+    			MultiMap<Integer,Integer> next;
+    			MultiMap<Integer,Integer> prev;
+    		}
+    		
+    		class BadTrain extends Exception
+    		{
+    			
+    		}
+    		
+    		char firstChar( String a)
+    		{
+    			return a.charAt( 0 );    			
+    		}
+    		
+    		char lastChar(String a)
+    		{
+    			return a.charAt( a.length()-1 );
+    		}
+    		
+    		boolean goodWord(String a)
+    		{
+    			HashSet<Character> cs = new HashSet<Character>();
+    			boolean ret = true;
+    			cs.add(a.charAt( 0 ));
+    			for (int i = 1; i < a.length(); ++i)
+    			{
+    				if (cs.contains( a.charAt(i) ))
+    				{
+    					if (a.charAt( i ) != a.charAt( i-1 ))
+    					{
+    						return false;
+    					}    					
+    				}
+    				cs.add(a.charAt( i ));    				
+    			}
+    			return ret;
+    		}
+    		
+    		boolean canNext( String a, String b) throws BadTrain
+    		{
+    			boolean ret = lastChar(a) == firstChar(b);
+    			if (!goodWord(a+b))
+    			{
+    				SO.println("BAD !! -- " + a + " : " + b);
+    				throw new BadTrain();
+    			}
+    			return true;
+    		}
+    		
+    		int fact(int n)
+    		{
+    			int x = 1;
+    			for (int i = 2; i <=n; ++i)
+    			{
+    				x *=n;
+    				x %= factor;
+    			}
+    			return x;
+    		}
+
+			@Override
+			public String solve( Scanner in )
+			{				
+				int N = Integer.parseInt( in.nextLine() );
+				String line = in.nextLine();
+				String [] words = line.split( " " );
+				
+				try
+				{
+					SO.println("can next - "  + canNext("ga", "abcd"));
+					SO.println("good word - " + goodWord("abcdec"));
+					
+					for (String a : words)
+					{
+						if(!this.goodWord( a ))
+						{
+							return "0";
+						}
+					}
+					for (int i = 0; i < N; ++i)
+					{
+						words[i] = Round1B.A.smallest( words[i], new ArrayList<Integer>() );
+						//SO.println(words[i] );
+					}
+					
+					Map<String,Integer> wordCount = new HashMap<String,Integer>();
+					for (int i = 0; i < N; ++i)
+					{
+						Integer cnt = wordCount.get(words[i]);
+						if (null == cnt) cnt = 0;
+						wordCount.put(words[i], ++cnt);
+					}
+					int ret = 1;
+					// make independent components.
+					while (true)
+					{
+						boolean done = true;
+						Set<String> toRemove = new HashSet<String>();
+						Set<String> toAdd = new HashSet<String>();
+						for (String a : wordCount.keySet())
+						{							
+							for (String b : wordCount.keySet())
+							{
+								if ( a == b ) continue;
+								
+								if (lastChar(a) == firstChar(b))
+								{
+									toRemove.add(a);
+									toRemove.add(b);
+									toAdd.add(a+b);
+									done = false;
+									break;
+								}
+							}
+							if (!done) break;
+						}
+						for (String a : toRemove)
+						{
+							wordCount.remove( a );
+						}
+						for (String a : toAdd)
+						{
+							wordCount.put( a, 1 );
+						}
+						if (done) break;
+					}
+					
+					for (String a : wordCount.keySet())
+					{
+						ret *= fact(wordCount.get( a ));
+						for (String b : wordCount.keySet())
+						{
+							if (a == b) continue;
+							canNext(a,b);							
+						}
+					}
+					
+					SO.println(Arrays.toString( wordCount.keySet().toArray() ));
+					ret *= fact(wordCount.size());
+					
+					return Integer.toString( ret  );
+				}
+				catch(BadTrain e)
+				{
+					SO.println("BAD TRAIN!");
+					return "0";
+				}
+				
+			}
+    		
+    	}
+    	
+    	public static class C extends GCJProblem
+    	{
+
+			@Override
+			public String solve( Scanner in )
+			{
+				// TODO Auto-generated method stub
+				return null;
+			}
+    		
+    	}
     }
 
 }
