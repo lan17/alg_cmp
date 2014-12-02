@@ -1,4 +1,4 @@
-object Main {
+object Mult {
     def main(args: Array[String]) {
         println(mult(args(0).toInt, args(1).toInt))
     }
