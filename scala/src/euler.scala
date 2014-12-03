@@ -15,17 +15,16 @@ object Main {
   }
 
   def Problem_1(args: Array[String]) = {
-    println((for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum)
+    (for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum
   }
 
   def Problem_2(args: Array[String]) = {
     val limit = args(0).toInt
-    val answer = (for (i <- Fun.fibs takeWhile (_ < limit) if i < limit && i % 2 == 0) yield i).sum
-    println(answer)
+    (for (i <- Fun.fibs takeWhile (_ < limit) if i < limit && i % 2 == 0) yield i).sum
   }
 
   def main(args: Array[String]) {
-    val problems = collection.mutable.Map[Int, Array[String] => Unit]()
+    val problems = collection.mutable.Map[Int, Array[String] => Any]()
     problems += 1 -> Problem_1 _
     problems += 2 -> Problem_2 _
    
@@ -38,7 +37,7 @@ object Main {
     })
 
     problems get args(0).toInt match {
-      case Some(i) => i(args.tail)
+      case Some(i) => println("Solution: " + i(args.tail).toString)
       case None => println("shit i didn't solve that one yet :/")
     }
   }
