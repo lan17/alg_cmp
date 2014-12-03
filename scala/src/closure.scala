@@ -1,13 +1,21 @@
 object Main {
   def main(args: Array[String]) {
-    val bar = foo() 
+    val bar = fibClosure() 
     for (i <- 0 until 10) {
       println(bar())
     }
-    println(fib(10))
+    println("---")
+    val op = (a:Int, b:Int) => {
+      println("%d - %d".format(a,b))
+      a + b
+    }
+    def fibs: Stream[Int] = 0 #:: fibs.scanLeft(1)(op)
+    for (i <- fibs take 15) {
+      println(i)
+    }
   }
 
-  val foo = () => {
+  val fibClosure = () => {
     var a = 1
     var b = 0
     () => {
@@ -17,13 +25,16 @@ object Main {
       j
     }
   }
-
-  val fib = (y:Int) => {
-    val f = foo()
-    for (i <- 0 until y) {
-      f()
+  
+  val fibGenerator = () => {
+    var a = 1
+    var b = 0
+    while(true) {
+      val ret = a + b
+      a = b
+      b = ret
+      //yield (ret)
+      
     }
-    f()
   }
-
 }
