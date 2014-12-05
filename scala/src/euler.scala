@@ -22,8 +22,12 @@ object Main {
     // http://www.scala-lang.org/api/current/index.html#scala.collection.immutable.Stream
     def fibs: Stream[BigInt] = BigInt(0) #:: fibs.scanLeft(BigInt(1))(_ + _)
 
+    /**
+     * Stuff to do with testing/making prime numbers
+     */
     object Primes {
       type NT = Long
+
       /**
        * Check if a number is prime by naively checking if its divisible by odd numbers less than its square root
        */
@@ -35,11 +39,16 @@ object Main {
 
       def isPrimeNaive = mem1(_isPrimeNaive)
 
+      def makePrimes(N: NT, isPrimeFunc: NT => Boolean): Seq[NT] = {
+        for (i <- (2L until N) if (isPrimeFunc(i))) yield i
+      }
+
       /**
-       * Generate a Seq of primes less than N
+       * Generate a Seq of primes less than * N
+       * by default do not use memoized version of isPrime
        */
       def makePrimes(N: NT): Seq[NT] = {
-        for (i <- (2L until N) if (isPrimeNaive(i))) yield i
+        makePrimes(N, _isPrimeNaive)
       }
 
       // compute prime factors of a number N
@@ -68,7 +77,9 @@ object Main {
     }
   }
 
+  // type for arguments of euler problem implementation.
   type A = Array[String]
+  // type for return value of euler problem implementation.
   type R = Any
 
   def RunIt(func: A => R): (A => R) = {
@@ -106,6 +117,11 @@ object Main {
     Fun.Primes.primeFactors(args(0).toLong).max
   }
 
+  def Problem_7(args: Array[String]) = {
+    // https://primes.utm.edu/howmany.html ;)
+    Fun.Primes.makePrimes(1000000)(10000)
+  }
+
   def printPrimes(args: Array[String]) = {
     Fun.Primes.makePrimes(args(0).toInt).length
   }
@@ -126,6 +142,7 @@ object Main {
     problems put (1, Problem_1 _)
     problems put (2, Problem_2 _)
     problems put (3, Problem_3 _)
+    problems put (7, Problem_7 _)
     problems put ("primes", printPrimes _)
     problems put ("primeFactors", printPrimeFactors _)
 
