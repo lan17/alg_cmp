@@ -1,25 +1,69 @@
 import scala.language.implicitConversions
 import scala.language.postfixOps
+import collection.mutable.Map
 
 object Main {
   object Fun {
+    // memoize an arbitrary Function1
+    def mem1[A, R](func: A => R): (A => R) = {
+      val map = Map[A, R]()
+      (a: A) => {
+        map get a match {
+          case Some(i) => i
+          case None => {
+            val ret = func(a)
+            map += a -> ret
+            ret
+          }
+        }
+      }
+    }
+
     // http://www.scala-lang.org/api/current/index.html#scala.collection.immutable.Stream
     def fibs: Stream[BigInt] = BigInt(0) #:: fibs.scanLeft(BigInt(1))(_ + _)
 
     object Primes {
       type NT = Long
-      
-      def isPrime(n: NT, factors: List[NT]): Boolean = {
-        factors takeWhile (_ < Math.sqrt(n)) forall (n % _ != 0)
+      /**
+       * Check if a number is prime by naively checking if its divisible by odd numbers less than its square root
+       */
+      def _isPrimeNaive(n: NT): Boolean = {
+        if (n == 2 || n == 3) true
+        else if (n % 2 == 0) false
+        else (3 until (Math.sqrt(n).toInt + 2) by 2) forall (n % _ != 0)
       }
 
-      def makePrimes(N: NT): List[NT] = {
-        def rec(i: Int, primes: List[NT]): List[NT] = {
-          if (i >= N) primes
-          else if (isPrime(i, primes)) rec(i + 2, i :: primes)
-          else rec(i + 1, primes)
+      def isPrimeNaive = mem1(_isPrimeNaive)
+
+      /**
+       * Generate a Seq of primes less than N
+       */
+      def makePrimes(N: NT): Seq[NT] = {
+        for (i <- (2L until N) if (isPrimeNaive(i))) yield i
+      }
+
+      // compute prime factors of a number N
+      def primeFactors(N: NT): Seq[NT] = {
+        def _primeFactors(N: NT, primes: Seq[NT], mem: Map[NT, List[NT]]): List[NT] = {
+          mem get N match {
+            case Some(factors) => factors
+            case None => {
+              // need to calculate
+              primes.find(N % _ == 0) match {
+                case Some(factor) => {
+                  val ret = factor :: _primeFactors(N / factor, primes, mem)
+                  mem += N -> ret
+                  ret
+                }
+                case None => {
+                  List(N)
+                }
+              }
+            }
+          }
         }
-        rec(5, List(3, 2)).reverse
+
+        _primeFactors(N, makePrimes(Math.sqrt(N).toInt), Map())
       }
     }
   }
@@ -58,8 +102,16 @@ object Main {
     (for (i <- Fun.fibs takeWhile (_ < limit) if i < limit && i % 2 == 0) yield i).sum
   }
 
+  def Problem_3(args: Array[String]) = {
+    Fun.Primes.primeFactors(args(0).toLong).max
+  }
+
   def printPrimes(args: Array[String]) = {
-    Fun.Primes.makePrimes(args(0).toLong).length
+    Fun.Primes.makePrimes(args(0).toInt).length
+  }
+
+  def printPrimeFactors(args: Array[String]) = {
+    Fun.Primes.primeFactors(args(0).toInt)
   }
 
   def main(args: Array[String]) {
@@ -67,12 +119,15 @@ object Main {
     //def wrapIt[A,R](func: A => R):(A=>R) = RunIt(TimeFunc(func))
     val wrapIt = RunIt _ compose TimeFunc _
 
+    // implicitly convert ints to string to help with putting ints as strings as keys in the problems map
     implicit def intToString(i: Int) = i.toString
 
-    val problems = collection.mutable.Map[String, Array[String] => Any]()
+    val problems = Map[String, Array[String] => Any]()
     problems put (1, Problem_1 _)
     problems put (2, Problem_2 _)
+    problems put (3, Problem_3 _)
     problems put ("primes", printPrimes _)
+    problems put ("primeFactors", printPrimeFactors _)
 
     // wrap each solution function with timing logic
     problems.keySet.foreach((k: String) => {
