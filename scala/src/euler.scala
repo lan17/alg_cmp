@@ -4,7 +4,9 @@ import collection.mutable.Map
 
 object Main {
   object Fun {
-    // memoize an arbitrary Function1
+    /**
+     * memoize an arbitrary Function1
+     */
     def mem1[A, R](func: A => R): (A => R) = {
       val map = Map[A, R]()
       (a: A) => {
@@ -104,19 +106,6 @@ object Main {
       }
   }
 
-  def Problem_1(args: A) = {
-    (for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum
-  }
-
-  def Problem_2(args: A) = {
-    val limit = args(0).toInt
-    (for (i <- Fun.fibs takeWhile (_ < limit) if i < limit && i % 2 == 0) yield i).sum
-  }
-
-  def Problem_3(args: A) = {
-    Fun.Primes.primeFactors(args(0).toLong).max
-  }
-
   def Problem_8(args: A) = {
     def multStr(a: String): Long = a.foldLeft(1L) { (acc, c) => acc * (c - '0') }
     val in = io.Source.fromInputStream(System.in).getLines.mkString
@@ -126,31 +115,27 @@ object Main {
     multStr(num)
   }
 
-  def printPrimes(args: A) = {
-    Fun.Primes.makePrimes(args(0).toInt).length
-  }
-
-  def printPrimeFactors(args: A) = {
-    Fun.Primes.primeFactors(args(0).toInt)
-  }
-
   def main(args: A) {
 
     //def wrapIt[A,R](func: A => R):(A=>R) = RunIt(TimeFunc(func))
     val wrapIt = RunIt _ compose TimeFunc _
 
-    // implicitly convert ints to string to help with putting ints as strings as keys in the problems map
-    implicit def intToString(i: Int) = i.toString
+    // Implicit conversions as helper methods for putting problems into map and dealing with String args
+    implicit def intToString(i: Int): String = i.toString
+    implicit def stringToLong(s: String) = s.toLong
+    //implicit def stringToInt(s: String): Int = s.toInt
+    implicit def stringToBigInt(s: String) = BigInt(s, 10)
 
     val problems = Map[String, A => R]()
-    problems put (1, Problem_1 _)
-    problems put (2, Problem_2 _)
-    problems put (3, Problem_3 _)
+    problems put (1, (arg: A) => (for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum)
+    problems put (2, (arg: A) => (for (i <- Fun.fibs takeWhile (_ < arg(0)) if i < arg(0) && i % 2 == 0) yield i).sum)
+    problems put (3, (arg: A) => Fun.Primes.primeFactors(arg(0)).max)
+    problems put (6, (arg: A) => Math.pow((1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n }, 2L).toLong - (1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n * n })
     // https://primes.utm.edu/howmany.html ;)
     problems put (7, (arg: A) => Fun.Primes.makePrimes(1000000)(10000))
     problems put (8, Problem_8 _)
-    problems put ("primes", printPrimes _)
-    problems put ("primeFactors", printPrimeFactors _)
+    problems put ("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)).length)
+    problems put ("primeFactors", (arg: A) => Fun.Primes.primeFactors(arg(0)))
 
     // wrap each solution function with timing logic
     problems.keySet.foreach((k: String) => {
@@ -160,6 +145,7 @@ object Main {
       }
     })
 
+    // execute the problem user selected
     problems get args(0) match {
       case Some(i) => i(args.tail)
       case None => println("shit i didn't solve that one yet :/")
