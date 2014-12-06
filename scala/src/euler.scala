@@ -104,33 +104,37 @@ object Main {
       }
   }
 
-  def Problem_1(args: Array[String]) = {
+  def Problem_1(args: A) = {
     (for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum
   }
 
-  def Problem_2(args: Array[String]) = {
+  def Problem_2(args: A) = {
     val limit = args(0).toInt
     (for (i <- Fun.fibs takeWhile (_ < limit) if i < limit && i % 2 == 0) yield i).sum
   }
 
-  def Problem_3(args: Array[String]) = {
+  def Problem_3(args: A) = {
     Fun.Primes.primeFactors(args(0).toLong).max
   }
 
-  def Problem_7(args: Array[String]) = {
-    // https://primes.utm.edu/howmany.html ;)
-    Fun.Primes.makePrimes(1000000)(10000)
+  def Problem_8(args: A) = {
+    def multStr(a: String): Long = a.foldLeft(1L) { (acc, c) => acc * (c - '0') }
+    val in = io.Source.fromInputStream(System.in).getLines.mkString
+    val slide = in sliding (args(0).toInt)
+    val num = slide max (new Ordering[String] { def compare(a: String, b: String) = multStr(a) compare multStr(b) })
+    println("number %s".format(num))
+    multStr(num)
   }
 
-  def printPrimes(args: Array[String]) = {
+  def printPrimes(args: A) = {
     Fun.Primes.makePrimes(args(0).toInt).length
   }
 
-  def printPrimeFactors(args: Array[String]) = {
+  def printPrimeFactors(args: A) = {
     Fun.Primes.primeFactors(args(0).toInt)
   }
 
-  def main(args: Array[String]) {
+  def main(args: A) {
 
     //def wrapIt[A,R](func: A => R):(A=>R) = RunIt(TimeFunc(func))
     val wrapIt = RunIt _ compose TimeFunc _
@@ -138,11 +142,13 @@ object Main {
     // implicitly convert ints to string to help with putting ints as strings as keys in the problems map
     implicit def intToString(i: Int) = i.toString
 
-    val problems = Map[String, Array[String] => Any]()
+    val problems = Map[String, A => R]()
     problems put (1, Problem_1 _)
     problems put (2, Problem_2 _)
     problems put (3, Problem_3 _)
-    problems put (7, Problem_7 _)
+    // https://primes.utm.edu/howmany.html ;)
+    problems put (7, (arg: A) => Fun.Primes.makePrimes(1000000)(10000))
+    problems put (8, Problem_8 _)
     problems put ("primes", printPrimes _)
     problems put ("primeFactors", printPrimeFactors _)
 
