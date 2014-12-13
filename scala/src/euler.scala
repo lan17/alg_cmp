@@ -2,6 +2,11 @@ import scala.language.implicitConversions
 import scala.language.postfixOps
 import collection.mutable.Map
 
+/**
+ * Solving project euler problems using scala by Lev Neiman
+ *
+ * https://projecteuler.net
+ */
 object Main {
   object Fun {
     /**
@@ -114,30 +119,18 @@ object Main {
     println("number %s".format(num))
     multStr(num)
   }
-  
-  def foo(x:Int) = {
-    println(" this is %d".format(x))
-  }
 
   def main(args: A) {
-
-    //def wrapIt[A,R](func: A => R):(A=>R) = RunIt(TimeFunc(func))
     val wrapIt = RunIt _ compose TimeFunc _
 
     // Implicit conversions as helper methods for putting problems into map and dealing with String args
     implicit def intToString(i: Int): String = i.toString
-    implicit def stringToLong(s: String) = {
-      println(s + " string -> long " + s.getClass)
-      s.toLong
-    }
-    // magically chain implicits!  This line shoudl chain conversion from string -> long -> int
+    implicit def stringToLong(s: String) = s.toLong
+    // magically chain implicits!  This line should chain conversion from string -> long -> int
     // http://stackoverflow.com/questions/5332801/how-can-i-chain-implicits-in-scala
-    implicit def stringToInt[String <% Long](a: String):Int = {
-      println(a + " String -> Int" + a.getClass)
-      a.toInt
-    }
-
-    implicit def stringToBigInt[String <% Int](s: String):BigInt = BigInt(s.toString, 10)
+    implicit def stringToInt[String <% Long](a: String): Int = a.toInt
+    implicit def stringToBigInt[String <% Long](s: String): BigInt = BigInt(s.toString, 10)
+    implicit def bigIntToString(s: BigInt) = s.toString
 
     val problems = Map[String, A => R]()
     problems put (1, (arg: A) => (for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum)
@@ -148,10 +141,10 @@ object Main {
     problems put (7, (arg: A) => Fun.Primes.makePrimes(1000000)(10000))
     problems put (8, Problem_8 _)
     problems put (10, (arg: A) => Fun.Primes.makePrimes(arg(0)).sum)
+    problems put (13, (arg: A) => io.Source.fromInputStream(System.in).getLines.foldLeft(BigInt("0", 10)) { (acc, c) => acc + BigInt(c, 10) }.subSequence(0, 10))
     problems put (16, (arg: A) => BigInt(2, 10).pow(arg(0)).toString.foldLeft(0) { (acc, n) => acc + n - '0' })
     problems put ("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)).length)
     problems put ("primeFactors", (arg: A) => Fun.Primes.primeFactors(arg(0)))
-    problems put ("foo", (arg: A) => foo(arg(0)))
 
     // wrap each solution function with timing logic
     problems.keySet.foreach((k: String) => {
