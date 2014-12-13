@@ -158,6 +158,7 @@ object Main {
   }
 
   def main(args: A) {
+    // always play it safe
     val wrapIt = RunIt _ compose TimeFunc _
 
     // Implicit conversions as helper methods for putting problems into map and dealing with String args
