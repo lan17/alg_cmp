@@ -182,6 +182,7 @@ object Main {
     problems put (13, (arg: A) => io.Source.fromInputStream(System.in).getLines.foldLeft(BigInt("0", 10)) { (acc, c) => acc + BigInt(c, 10) }.subSequence(0, 10))
     problems put (16, (arg: A) => BigInt(2, 10).pow(arg(0)).toString.foldLeft(0) { (acc, n) => acc + n - '0' })
     problems put (18, MaxPathSum _)
+    problems put (20, (arg: A) => (BigInt(1) until BigInt(arg(0))).foldLeft(BigInt(1))((acc, n) => acc * n).toString.foldLeft(0)((acc,n)=>acc + n-'0'))
     problems put (67, MaxPathSum _)
     problems put ("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)).length)
     problems put ("primeFactors", (arg: A) => Fun.Primes.primeFactors(arg(0)))
