@@ -147,13 +147,10 @@ object Main {
 
   def MaxPathSum(args: A) = {
     var sums = (Map[Int, Int]().withDefaultValue(-1), Map[Int, Int]().withDefaultValue(-1))
-    io.Source.fromInputStream(System.in).getLines foreach { (line) => {
-        (line.split(' ') map { (x) => x.toInt }).zipWithIndex foreach {
-          (v) => {
-              val i = v._2
-              sums._2(i) = Math.max(sums._1(i), sums._1(i - 1)) + v._1
-            }
-        }
+    io.Source.fromInputStream(System.in).getLines foreach { (line) =>
+      {
+        (line.split(' ') map { (x) => x.toInt }).zipWithIndex foreach
+          { (v) => val i = v._2; sums._2(i) = Math.max(sums._1(i), sums._1(i - 1)) + v._1 }
         sums = sums.swap
       }
     }
