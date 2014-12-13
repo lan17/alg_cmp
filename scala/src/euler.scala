@@ -89,6 +89,31 @@ object Main {
   // type for return value of euler problem implementation.
   type R = Any
 
+  // pretty print array
+  implicit def arrayPrettyPrint[G](arg: Array[G]): String = {
+    val vals = arg.foldLeft("") { (acc, n) =>
+      {
+        acc + n.toString + ", "
+      }
+    }
+    "[%s]".format(vals)
+  }
+
+  //pretty print map
+  implicit def mapPrettyPrint[K, V](m: Map[K, V]): String = {
+    val vals = m.iterator.foldLeft("") { (acc, n) =>
+      {
+        acc + n._1 + ": " + n._2 + ", "
+      }
+    }
+    "{%s}".format(vals)
+  }
+
+  /**
+   * identity function to force scala to use implicit pretty print conversion
+   */
+  def pp(x: String): String = x
+
   def RunIt(func: A => R): (A => R) = {
     (args: A) =>
       {
@@ -120,6 +145,21 @@ object Main {
     multStr(num)
   }
 
+  def MaxPathSum(args: A) = {
+    var sums = (Map[Int, Int]().withDefaultValue(-1), Map[Int, Int]().withDefaultValue(-1))
+    io.Source.fromInputStream(System.in).getLines foreach { (line) => {
+        (line.split(' ') map { (x) => x.toInt }).zipWithIndex foreach {
+          (v) => {
+              val i = v._2
+              sums._2(i) = Math.max(sums._1(i), sums._1(i - 1)) + v._1
+            }
+        }
+        sums = sums.swap
+      }
+    }
+    sums._1.values.max + 1
+  }
+
   def main(args: A) {
     val wrapIt = RunIt _ compose TimeFunc _
 
@@ -143,6 +183,8 @@ object Main {
     problems put (10, (arg: A) => Fun.Primes.makePrimes(arg(0)).sum)
     problems put (13, (arg: A) => io.Source.fromInputStream(System.in).getLines.foldLeft(BigInt("0", 10)) { (acc, c) => acc + BigInt(c, 10) }.subSequence(0, 10))
     problems put (16, (arg: A) => BigInt(2, 10).pow(arg(0)).toString.foldLeft(0) { (acc, n) => acc + n - '0' })
+    problems put (18, MaxPathSum _)
+    problems put (67, MaxPathSum _)
     problems put ("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)).length)
     problems put ("primeFactors", (arg: A) => Fun.Primes.primeFactors(arg(0)))
 
