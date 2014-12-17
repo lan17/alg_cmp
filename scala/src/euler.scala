@@ -1,6 +1,7 @@
 import scala.language.implicitConversions
 import scala.language.postfixOps
 import collection.mutable.Map
+import scala.reflect.ClassTag
 
 /**
  * Solving project euler problems using scala by Lev Neiman
@@ -28,6 +29,24 @@ object Main {
 
     // http://www.scala-lang.org/api/current/index.html#scala.collection.immutable.Stream
     def fibs: Stream[BigInt] = BigInt(0) #:: fibs.scanLeft(BigInt(1))(_ + _)
+
+    def properDivisors(n: Long): Iterable[Long] = {
+      var ret = collection.mutable.HashSet[Long](1L)
+      val rec = (n: Long) => {
+        if (n > 1) {
+          for (i <- 2L until n / 2L) {
+            if (n % i == 0) {
+              ret.+=(i, n / i)
+              properDivisors(i)
+              properDivisors(n / i)
+            }
+          }
+        }
+      }
+
+      rec(n)
+      ret
+    }
 
     /**
      * Stuff to do with testing/making prime numbers
@@ -59,7 +78,7 @@ object Main {
       }
 
       // compute prime factors of a number N
-      def primeFactors(N: NT): Seq[NT] = {
+      def primeFactors(N: NT): List[NT] = {
         def _primeFactors(N: NT, primes: Seq[NT], mem: Map[NT, List[NT]]): List[NT] = {
           mem get N match {
             case Some(factors) => factors
@@ -79,7 +98,7 @@ object Main {
           }
         }
 
-        _primeFactors(N, makePrimes(Math.sqrt(N).toInt), Map())
+        _primeFactors(N, makePrimes(Math.sqrt(N).toInt+2), Map())
       }
     }
   }
@@ -97,6 +116,10 @@ object Main {
       }
     }
     "[%s]".format(vals)
+  }
+  
+  implicit def seqPrettyPrint[G:ClassTag](arg:Seq[G]): String = {
+    arrayPrettyPrint(arg.toArray[G])
   }
 
   //pretty print map
@@ -136,6 +159,29 @@ object Main {
       }
   }
 
+  def Problem_5(n: Long) = {
+    var ps = List(1L)
+    val merge = (x:List[Long], y:List[Long]) => {
+      var ret = x
+      for (i <- y.distinct) {
+        val cntX = x.count(_==i)
+        val cntY = y.count(_==i)
+        var j = cntX
+        while (j < cntY) {
+          ret = i :: ret
+          j = j + 1
+        }
+      }
+      ret
+    }
+    (2L to n) foreach { (x) =>
+      val pFactors = Fun.Primes.primeFactors(x)
+      ps = merge(ps, pFactors)
+    }
+    println(pp(ps.sortWith(_<_)))
+    ps.foldLeft(1L)(_*_)
+  }
+
   def Problem_8(args: A) = {
     def multStr(a: String): Long = a.foldLeft(1L) { (acc, c) => acc * (c - '0') }
     val in = io.Source.fromInputStream(System.in).getLines.mkString
@@ -145,11 +191,19 @@ object Main {
     multStr(num)
   }
 
+  def Problem_21(lim: Long) = {
+    val d = Fun.mem1((n: Long) => Fun.properDivisors(n).sum)
+    val isAmicable = (n: Long) => n == d(d(n)) && n != d(n)
+    val nums = 1L until lim filter isAmicable
+    println(nums)
+    nums.sum
+  }
+
   def MaxPathSum(args: A) = {
     var sums = (Map[Int, Int]().withDefaultValue(0), Map[Int, Int]().withDefaultValue(0))
     io.Source.fromInputStream(System.in).getLines foreach { (line) =>
       {
-        (line.split(' ') map { (x) => x.toInt }).zipWithIndex foreach
+        (line.split(' ') map (_.toInt)).zipWithIndex foreach
           { (v) => val i = v._2; sums._2(i) = Math.max(sums._1(i), sums._1(i - 1)) + v._1 }
         sums = sums.swap
       }
@@ -169,11 +223,13 @@ object Main {
     implicit def stringToInt[String <% Long](a: String): Int = a.toInt
     implicit def stringToBigInt[String <% Long](s: String): BigInt = BigInt(s.toString, 10)
     implicit def bigIntToString(s: BigInt) = s.toString
+    implicit def arrayToLong(s: A): Long = stringToLong(s(0))
 
     val problems = Map[String, A => R]()
     problems put (1, (arg: A) => (for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum)
     problems put (2, (arg: A) => (for (i <- Fun.fibs takeWhile (_ < arg(0)) if i < arg(0) && i % 2 == 0) yield i).sum)
     problems put (3, (arg: A) => Fun.Primes.primeFactors(arg(0)).max)
+    problems put (5, Problem_5(_))
     problems put (6, (arg: A) => Math.pow((1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n }, 2L).toLong - (1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n * n })
     // https://primes.utm.edu/howmany.html ;)
     problems put (7, (arg: A) => Fun.Primes.makePrimes(1000000)(10000))
@@ -183,10 +239,12 @@ object Main {
     problems put (16, (arg: A) => BigInt(2, 10).pow(arg(0)).toString.foldLeft(0) { (acc, n) => acc + n - '0' })
     problems put (18, MaxPathSum _)
     problems put (20, (arg: A) => (BigInt(1) until BigInt(arg(0))).foldLeft(BigInt(1))((acc, n) => acc * n).toString.foldLeft(0)((acc, n) => acc + n - '0'))
-    problems put (25, (arg: A) => Fun.fibs.takeWhile((x)=>x.toString.size < stringToLong(arg(0))).zipWithIndex.last._2 + 1)
+    problems put (21, Problem_21(_))
+    problems put (25, (arg: A) => Fun.fibs.takeWhile((x) => x.toString.size < stringToLong(arg(0))).zipWithIndex.last._2 + 1)
     problems put (67, MaxPathSum _)
-    problems put ("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)).length)
-    problems put ("primeFactors", (arg: A) => Fun.Primes.primeFactors(arg(0)))
+    problems put ("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)))
+    problems put ("primeFactors", Fun.Primes.primeFactors(_))
+    problems put ("properDivisors", (arg: A) => pp(Fun.properDivisors(arg(0)).toArray.sortWith(_ < _)))
 
     // wrap each solution function with timing logic
     problems.keySet.foreach((k: String) => {
@@ -197,9 +255,12 @@ object Main {
     })
 
     // execute the problem user selected
-    problems get args(0) match {
-      case Some(i) => i(args.tail)
-      case None => println("shit i didn't solve that one yet :/")
-    }
+    var errMsg = "shit i didn't solve that one yet :/\n try %s".format(pp(problems.keySet.toArray.sortWith(_ < _)))
+    if (args.length > 0) {
+      problems get args(0) match {
+        case Some(i) => i(args.tail)
+        case None => println(errMsg)
+      }
+    } else println(errMsg)
   }
 }
