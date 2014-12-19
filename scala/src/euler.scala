@@ -57,13 +57,12 @@ object Main {
       /**
        * Check if a number is prime by naively checking if its divisible by odd numbers less than its square root
        */
-      def _isPrimeNaive(n: NT): Boolean = {
+      def isPrimeNaive(n: NT): Boolean = {
         if (n == 2 || n == 3) true
         else if (n % 2 == 0) false
         else (3 until (Math.sqrt(n).toInt + 2) by 2) forall (n % _ != 0)
       }
 
-      def isPrimeNaive = mem1(_isPrimeNaive)
 
       def makePrimes(N: NT, isPrimeFunc: NT => Boolean): Seq[NT] = {
         for (i <- (2L until N) if (isPrimeFunc(i))) yield i
@@ -74,7 +73,7 @@ object Main {
        * by default do not use memoized version of isPrime
        */
       def makePrimes(N: NT): Seq[NT] = {
-        makePrimes(N, _isPrimeNaive)
+        makePrimes(N, isPrimeNaive)
       }
 
       // compute prime factors of a number N
@@ -98,7 +97,7 @@ object Main {
           }
         }
 
-        _primeFactors(N, makePrimes(Math.sqrt(N).toInt+2), Map())
+        _primeFactors(N, makePrimes(Math.sqrt(N).toInt + 2), Map())
       }
     }
   }
@@ -117,8 +116,8 @@ object Main {
     }
     "[%s]".format(vals)
   }
-  
-  implicit def seqPrettyPrint[G:ClassTag](arg:Seq[G]): String = {
+
+  implicit def seqPrettyPrint[G: ClassTag](arg: Seq[G]): String = {
     arrayPrettyPrint(arg.toArray[G])
   }
 
@@ -158,14 +157,16 @@ object Main {
         ret
       }
   }
+  
+  //////////// Actual problem implementations /////////////////
 
   def Problem_5(n: Long) = {
     var ps = List(1L)
-    val merge = (x:List[Long], y:List[Long]) => {
+    val merge = (x: List[Long], y: List[Long]) => {
       var ret = x
       for (i <- y.distinct) {
-        val cntX = x.count(_==i)
-        val cntY = y.count(_==i)
+        val cntX = x.count(_ == i)
+        val cntY = y.count(_ == i)
         var j = cntX
         while (j < cntY) {
           ret = i :: ret
@@ -178,8 +179,8 @@ object Main {
       val pFactors = Fun.Primes.primeFactors(x)
       ps = merge(ps, pFactors)
     }
-    println(pp(ps.sortWith(_<_)))
-    ps.foldLeft(1L)(_*_)
+    println(pp(ps.sortWith(_ < _)))
+    ps.foldLeft(1L)(_ * _)
   }
 
   def Problem_8(args: A) = {
@@ -197,6 +198,32 @@ object Main {
     val nums = 1L until lim filter isAmicable
     println(nums)
     nums.sum
+  }
+  
+  def Problem_50(lim: Long) = {
+    val isPrime = Fun.Primes.isPrimeNaive _
+    val primeList = Fun.Primes.makePrimes(lim, isPrime)
+    println(primeList.getClass)
+    
+    def maxChain(i:Int, l:Seq[Long], exists: Long=>Boolean):(Long, Long) = {
+      var maxChain = 0 
+      var maxSum = 0L
+      var sum = 0L
+      for (j <- i until l.length) {
+        val t = sum + l(j)
+        if (t > lim) {
+          return (maxChain, maxSum)
+        }
+        sum  = sum + l(j)
+        if (exists(sum) && sum < lim) {
+          maxChain = j - i + 1
+          maxSum = sum
+        }
+      }
+      (maxChain, maxSum)
+    }
+   
+    (0 until primeList.length/2).toArray.map((x)=>maxChain(x.toInt, primeList, isPrime)).maxBy(_._1)
   }
 
   def MaxPathSum(args: A) = {
@@ -241,6 +268,7 @@ object Main {
     problems put (20, (arg: A) => (BigInt(1) until BigInt(arg(0))).foldLeft(BigInt(1))((acc, n) => acc * n).toString.foldLeft(0)((acc, n) => acc + n - '0'))
     problems put (21, Problem_21(_))
     problems put (25, (arg: A) => Fun.fibs.takeWhile((x) => x.toString.size < stringToLong(arg(0))).zipWithIndex.last._2 + 1)
+    problems put (50, Problem_50(_))
     problems put (67, MaxPathSum _)
     problems put ("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)))
     problems put ("primeFactors", Fun.Primes.primeFactors(_))
