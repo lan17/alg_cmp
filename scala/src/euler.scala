@@ -1,5 +1,5 @@
 import scala.collection.mutable.Map
-import scala.language.{implicitConversions, postfixOps}
+import scala.language.{ implicitConversions, postfixOps }
 import scala.reflect.ClassTag
 
 /**
@@ -25,28 +25,29 @@ object euler {
       }
     }
 
-    def _defaultReporter = (sec:Double) => println("it took %f seconds".format(sec))
+    def _defaultReporter = (sec: Double) => println("it took %f seconds".format(sec))
 
     /**
      * Wrap a given function of single arg with timing logic.
      */
-    def TimeFunc1[K,V](func: K => V, reporter: Double => Unit = _defaultReporter): (K => V) = {
+    def TimeFunc1[K, V](func: K => V, reporter: Double => Unit = _defaultReporter): (K => V) = {
       (args: K) =>
-      {
-        val start = System.nanoTime
-        val ret = func(args)
-        reporter((System.nanoTime-start)/1e9)
-        ret
-      }
+        {
+          val start = System.nanoTime
+          val ret = func(args)
+          reporter((System.nanoTime - start) / 1e9)
+          ret
+        }
     }
 
     def TimeFunc0[V](func: () => V, reporter: Double => Unit = _defaultReporter): () => V = {
-      () => {
-        val start = System.nanoTime
-        val ret = func()
-        reporter((System.nanoTime - start)/1e9)
-        ret
-      }
+      () =>
+        {
+          val start = System.nanoTime
+          val ret = func()
+          reporter((System.nanoTime - start) / 1e9)
+          ret
+        }
     }
 
     // http://www.scala-lang.org/api/current/index.html#scala.collection.immutable.Stream
@@ -85,16 +86,15 @@ object euler {
         else (3 until (Math.sqrt(n).toInt + 2) by 2) forall (n % _ != 0)
       }
 
-
       def _makePrimes(N: NT, isPrimeFunc: NT => Boolean): Seq[NT] = {
-//        (for (i <- (3L until N by 2) if (isPrimeFunc(i))) yield i).+:(2L)
+        //        (for (i <- (3L until N by 2) if (isPrimeFunc(i))) yield i).+:(2L)
         (3L until N by 2).par.filter(isPrimeFunc(_)).+:(2L).toVector
 
       }
 
       def makePrimes(N: NT, isPrimeFunc: NT => Boolean): Seq[NT] = {
-        val doIt = (n:NT) => _makePrimes(n, isPrimeFunc)
-        val timedDoIt = Fun.TimeFunc1(doIt, (sec)=>println("Making %d primes took %f seconds ".format(N, sec)))
+        val doIt = (n: NT) => _makePrimes(n, isPrimeFunc)
+        val timedDoIt = Fun.TimeFunc1(doIt, (sec) => println("Making %d primes took %f seconds ".format(N, sec)))
         timedDoIt(N)
       }
 
@@ -175,8 +175,6 @@ object euler {
       }
   }
 
-
-  
   //////////// Actual problem implementations /////////////////
 
   def Problem_5(n: Long) = {
@@ -218,13 +216,13 @@ object euler {
     println(nums)
     nums.sum
   }
-  
+
   def Problem_50(lim: Long) = {
     val isPrime = Fun.Primes.isPrimeNaive _
     val primeList = Fun.Primes.makePrimes(lim, isPrime)
 
-    def maxChain(i:Int, l:Seq[Long], exists: Long=>Boolean):(Long, Long) = {
-      var maxChain = 0 
+    def maxChain(i: Int, l: Seq[Long], exists: Long => Boolean): (Long, Long) = {
+      var maxChain = 0
       var maxSum = 0L
       var sum = 0L
       for (j <- i until l.length) {
@@ -232,7 +230,7 @@ object euler {
         if (t > lim) {
           return (maxChain, maxSum)
         }
-        sum  = sum + l(j)
+        sum = sum + l(j)
         if (exists(sum) && sum < lim) {
           maxChain = j - i + 1
           maxSum = sum
@@ -240,8 +238,8 @@ object euler {
       }
       (maxChain, maxSum)
     }
-    Fun.TimeFunc0(()=>
-    (0 until primeList.length/2).par.map((x)=>maxChain(x.toInt, primeList, isPrime)).maxBy(_._1))()
+    Fun.TimeFunc0(() =>
+      (0 until primeList.length / 2).par.map((x) => maxChain(x.toInt, primeList, isPrime)).maxBy(_._1))()
 
   }
 
@@ -270,24 +268,24 @@ object euler {
     implicit def arrayToLong(s: A): Long = stringToLong(s(0))
   }
 
-  var problems = Map[String, A=>R]()
+  var problems = Map[String, A => R]()
 
-  def testProblem[E](func:Option[A=>R], arg:A, expected:E, msg: String ) = {
+  def testProblem[E](func: Option[A => R], arg: A, expected: E, msg: String) = {
     func match {
-      case Some(f) => require(f(arg)==expected, msg)
+      case Some(f) => require(f(arg) == expected, msg)
       case None => println("Ain't solved yet, cowboy")
     }
   }
 
-  def testProblem[K <% String,V](key:K, arg: A, expected:V):Unit = {
+  def testProblem[K <% String, V](key: K, arg: A, expected: V): Unit = {
     testProblem(problems get key, arg, expected, "problem %s failed.".format(key.toString))
   }
 
   def testAll = {
     import implicitDefs._
 
-    implicit def intToStringArray(i:Int):Array[String] = Array(i.toString)
-    implicit def longToStringArray(l:Long):Array[String] = Array(l.toString)
+    implicit def intToStringArray(i: Int): Array[String] = Array(i.toString)
+    implicit def longToStringArray(l: Long): Array[String] = Array(l.toString)
 
     testProblem(1, Array(), 233168)
     testProblem(2, 4000000, 4613732)
@@ -303,27 +301,27 @@ object euler {
 
     import implicitDefs._
 
-    problems put(1, (arg: A) => (for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum)
-    problems put(2, (arg: A) => (for (i <- Fun.fibs takeWhile (_ < arg(0)) if i < arg(0) && i % 2 == 0) yield i).sum)
-    problems put(3, (arg: A) => Fun.Primes.primeFactors(arg(0)).max)
-    problems put(5, Problem_5(_))
-    problems put(6, (arg: A) => Math.pow((1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n}, 2L).toLong - (1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n * n})
+    problems put (1, (arg: A) => (for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum)
+    problems put (2, (arg: A) => (for (i <- Fun.fibs takeWhile (_ < arg(0)) if i < arg(0) && i % 2 == 0) yield i).sum)
+    problems put (3, (arg: A) => Fun.Primes.primeFactors(arg(0)).max)
+    problems put (5, Problem_5(_))
+    problems put (6, (arg: A) => Math.pow((1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n }, 2L).toLong - (1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n * n })
     // https://primes.utm.edu/howmany.html ;)
-    problems put(7, (arg: A) => Fun.Primes.makePrimes(1000000)(10000))
-    problems put(8, Problem_8 _)
-    problems put(10, (arg: A) => Fun.Primes.makePrimes(arg(0)).sum)
-    problems put(13, (arg: A) => io.Source.fromInputStream(System.in).getLines.foldLeft(BigInt("0", 10)) { (acc, c) => acc + BigInt(c, 10)}.subSequence(0, 10))
-    problems put(16, (arg: A) => BigInt(2, 10).pow(arg(0)).toString.foldLeft(0) { (acc, n) => acc + n - '0'})
-    problems put(18, MaxPathSum _)
-    problems put(20, (arg: A) => (BigInt(1) until BigInt(arg(0))).foldLeft(BigInt(1))((acc, n) => acc * n).toString.foldLeft(0)((acc, n) => acc + n - '0'))
-    problems put(21, Problem_21(_))
-    problems put(25, (arg: A) => Fun.fibs.takeWhile((x) => x.toString.size < stringToLong(arg(0))).zipWithIndex.last._2 + 1)
-    problems put(50, Problem_50(_))
-    problems put(67, MaxPathSum _)
-    problems put("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)))
-    problems put("primeFactors", Fun.Primes.primeFactors(_))
-    problems put("properDivisors", (arg: A) => pp(Fun.properDivisors(arg(0)).toArray.sortWith(_ < _)))
-    problems put("test", (arg:A) => testAll)
+    problems put (7, (arg: A) => Fun.Primes.makePrimes(1000000)(10000))
+    problems put (8, Problem_8 _)
+    problems put (10, (arg: A) => Fun.Primes.makePrimes(arg(0)).sum)
+    problems put (13, (arg: A) => io.Source.fromInputStream(System.in).getLines.foldLeft(BigInt("0", 10)) { (acc, c) => acc + BigInt(c, 10) }.subSequence(0, 10))
+    problems put (16, (arg: A) => BigInt(2, 10).pow(arg(0)).toString.foldLeft(0) { (acc, n) => acc + n - '0' })
+    problems put (18, MaxPathSum _)
+    problems put (20, (arg: A) => (BigInt(1) until BigInt(arg(0))).foldLeft(BigInt(1))((acc, n) => acc * n).toString.foldLeft(0)((acc, n) => acc + n - '0'))
+    problems put (21, Problem_21(_))
+    problems put (25, (arg: A) => Fun.fibs.takeWhile((x) => x.toString.size < stringToLong(arg(0))).zipWithIndex.last._2 + 1)
+    problems put (50, Problem_50(_))
+    problems put (67, MaxPathSum _)
+    problems put ("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)))
+    problems put ("primeFactors", Fun.Primes.primeFactors(_))
+    problems put ("properDivisors", (arg: A) => pp(Fun.properDivisors(arg(0)).toArray.sortWith(_ < _)))
+    problems put ("test", (arg: A) => testAll)
 
     // wrap each solution function with timing logic
     problems.keySet.foreach((k: String) => {
