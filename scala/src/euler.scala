@@ -1,6 +1,5 @@
-import scala.language.implicitConversions
-import scala.language.postfixOps
-import collection.mutable.Map
+import scala.collection.mutable.Map
+import scala.language.{implicitConversions, postfixOps}
 import scala.reflect.ClassTag
 
 /**
@@ -8,7 +7,7 @@ import scala.reflect.ClassTag
  *
  * https://projecteuler.net
  */
-object Main {
+object euler {
   object Fun {
     /**
      * memoize an arbitrary Function1
@@ -18,12 +17,35 @@ object Main {
       (a: A) => {
         map get a match {
           case Some(i) => i
-          case None => {
+          case None =>
             val ret = func(a)
             map += a -> ret
             ret
-          }
         }
+      }
+    }
+
+    def _defaultReporter = (sec:Double) => println("it took %f seconds".format(sec))
+
+    /**
+     * Wrap a given function of single arg with timing logic.
+     */
+    def TimeFunc1[K,V](func: K => V, reporter: Double => Unit = _defaultReporter): (K => V) = {
+      (args: K) =>
+      {
+        val start = System.nanoTime
+        val ret = func(args)
+        reporter((System.nanoTime-start)/1e9)
+        ret
+      }
+    }
+
+    def TimeFunc0[V](func: () => V, reporter: Double => Unit = _defaultReporter): () => V = {
+      () => {
+        val start = System.nanoTime
+        val ret = func()
+        reporter((System.nanoTime - start)/1e9)
+        ret
       }
     }
 
@@ -64,8 +86,16 @@ object Main {
       }
 
 
+      def _makePrimes(N: NT, isPrimeFunc: NT => Boolean): Seq[NT] = {
+//        (for (i <- (3L until N by 2) if (isPrimeFunc(i))) yield i).+:(2L)
+        (3L until N by 2).par.filter(isPrimeFunc(_)).+:(2L).toVector
+
+      }
+
       def makePrimes(N: NT, isPrimeFunc: NT => Boolean): Seq[NT] = {
-        for (i <- (2L until N) if (isPrimeFunc(i))) yield i
+        val doIt = (n:NT) => _makePrimes(n, isPrimeFunc)
+        val timedDoIt = Fun.TimeFunc1(doIt, (sec)=>println("Making %d primes took %f seconds ".format(N, sec)))
+        timedDoIt(N)
       }
 
       /**
@@ -145,18 +175,7 @@ object Main {
       }
   }
 
-  /**
-   * Wrap a given function of single arg with timing logic.
-   */
-  def TimeFunc(func: A => R): (A => R) = {
-    (args: A) =>
-      {
-        val start = System.nanoTime
-        val ret = func(args)
-        println("Problem took %f seconds to solve".format((System.nanoTime - start) / 1e9))
-        ret
-      }
-  }
+
   
   //////////// Actual problem implementations /////////////////
 
@@ -203,8 +222,7 @@ object Main {
   def Problem_50(lim: Long) = {
     val isPrime = Fun.Primes.isPrimeNaive _
     val primeList = Fun.Primes.makePrimes(lim, isPrime)
-    println(primeList.getClass)
-    
+
     def maxChain(i:Int, l:Seq[Long], exists: Long=>Boolean):(Long, Long) = {
       var maxChain = 0 
       var maxSum = 0L
@@ -222,8 +240,9 @@ object Main {
       }
       (maxChain, maxSum)
     }
-   
-    (0 until primeList.length/2).toArray.map((x)=>maxChain(x.toInt, primeList, isPrime)).maxBy(_._1)
+    Fun.TimeFunc0(()=>
+    (0 until primeList.length/2).par.map((x)=>maxChain(x.toInt, primeList, isPrime)).maxBy(_._1))()
+
   }
 
   def MaxPathSum(args: A) = {
@@ -238,11 +257,8 @@ object Main {
     sums._1.values.max
   }
 
-  def main(args: A) {
-    // always play it safe
-    val wrapIt = RunIt _ compose TimeFunc _
-
-    // Implicit conversions as helper methods for putting problems into map and dealing with String args
+  // Implicit conversions as helper methods for putting problems into map and dealing with String args
+  object implicitDefs {
     implicit def intToString(i: Int): String = i.toString
     implicit def stringToLong(s: String) = s.toLong
     // magically chain implicits!  This line should chain conversion from string -> long -> int
@@ -251,28 +267,53 @@ object Main {
     implicit def stringToBigInt[String <% Long](s: String): BigInt = BigInt(s.toString, 10)
     implicit def bigIntToString(s: BigInt) = s.toString
     implicit def arrayToLong(s: A): Long = stringToLong(s(0))
+  }
 
-    val problems = Map[String, A => R]()
-    problems put (1, (arg: A) => (for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum)
-    problems put (2, (arg: A) => (for (i <- Fun.fibs takeWhile (_ < arg(0)) if i < arg(0) && i % 2 == 0) yield i).sum)
-    problems put (3, (arg: A) => Fun.Primes.primeFactors(arg(0)).max)
-    problems put (5, Problem_5(_))
-    problems put (6, (arg: A) => Math.pow((1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n }, 2L).toLong - (1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n * n })
+  var problems = Map[String, A=>R]()
+
+  def testProblem[E](func:Option[A=>R], arg:A, expected:E ) = {
+    func match {
+      case Some(f) => require(f(arg)==expected)
+      case None => println("Ain't solved yet, cowboy")
+    }
+  }
+
+  def testAll = {
+    import implicitDefs._
+
+    testProblem(problems get 1, Array(), 233168)
+    testProblem(problems get 2, Array(4000000), 4613732)
+
+    "All tests passed!"
+  }
+
+  def main(args: A) {
+    // always play it safe
+    val wrapIt = (RunIt _).compose(Fun.TimeFunc1(_: A => R, (x: Double) => println("Problem took %f seconds to solve".format(x))))
+
+    import implicitDefs._
+
+    problems put(1, (arg: A) => (for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum)
+    problems put(2, (arg: A) => (for (i <- Fun.fibs takeWhile (_ < arg(0)) if i < arg(0) && i % 2 == 0) yield i).sum)
+    problems put(3, (arg: A) => Fun.Primes.primeFactors(arg(0)).max)
+    problems put(5, Problem_5(_))
+    problems put(6, (arg: A) => Math.pow((1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n}, 2L).toLong - (1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n * n})
     // https://primes.utm.edu/howmany.html ;)
-    problems put (7, (arg: A) => Fun.Primes.makePrimes(1000000)(10000))
-    problems put (8, Problem_8 _)
-    problems put (10, (arg: A) => Fun.Primes.makePrimes(arg(0)).sum)
-    problems put (13, (arg: A) => io.Source.fromInputStream(System.in).getLines.foldLeft(BigInt("0", 10)) { (acc, c) => acc + BigInt(c, 10) }.subSequence(0, 10))
-    problems put (16, (arg: A) => BigInt(2, 10).pow(arg(0)).toString.foldLeft(0) { (acc, n) => acc + n - '0' })
-    problems put (18, MaxPathSum _)
-    problems put (20, (arg: A) => (BigInt(1) until BigInt(arg(0))).foldLeft(BigInt(1))((acc, n) => acc * n).toString.foldLeft(0)((acc, n) => acc + n - '0'))
-    problems put (21, Problem_21(_))
-    problems put (25, (arg: A) => Fun.fibs.takeWhile((x) => x.toString.size < stringToLong(arg(0))).zipWithIndex.last._2 + 1)
-    problems put (50, Problem_50(_))
-    problems put (67, MaxPathSum _)
-    problems put ("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)))
-    problems put ("primeFactors", Fun.Primes.primeFactors(_))
-    problems put ("properDivisors", (arg: A) => pp(Fun.properDivisors(arg(0)).toArray.sortWith(_ < _)))
+    problems put(7, (arg: A) => Fun.Primes.makePrimes(1000000)(10000))
+    problems put(8, Problem_8 _)
+    problems put(10, (arg: A) => Fun.Primes.makePrimes(arg(0)).sum)
+    problems put(13, (arg: A) => io.Source.fromInputStream(System.in).getLines.foldLeft(BigInt("0", 10)) { (acc, c) => acc + BigInt(c, 10)}.subSequence(0, 10))
+    problems put(16, (arg: A) => BigInt(2, 10).pow(arg(0)).toString.foldLeft(0) { (acc, n) => acc + n - '0'})
+    problems put(18, MaxPathSum _)
+    problems put(20, (arg: A) => (BigInt(1) until BigInt(arg(0))).foldLeft(BigInt(1))((acc, n) => acc * n).toString.foldLeft(0)((acc, n) => acc + n - '0'))
+    problems put(21, Problem_21(_))
+    problems put(25, (arg: A) => Fun.fibs.takeWhile((x) => x.toString.size < stringToLong(arg(0))).zipWithIndex.last._2 + 1)
+    problems put(50, Problem_50(_))
+    problems put(67, MaxPathSum _)
+    problems put("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)))
+    problems put("primeFactors", Fun.Primes.primeFactors(_))
+    problems put("properDivisors", (arg: A) => pp(Fun.properDivisors(arg(0)).toArray.sortWith(_ < _)))
+    problems put("test", (arg:A) => testAll)
 
     // wrap each solution function with timing logic
     problems.keySet.foreach((k: String) => {
