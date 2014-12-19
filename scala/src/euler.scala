@@ -260,6 +260,7 @@ object euler {
   // Implicit conversions as helper methods for putting problems into map and dealing with String args
   object implicitDefs {
     implicit def intToString(i: Int): String = i.toString
+    implicit def longToString(l: Long): String = l.toString
     implicit def stringToLong(s: String) = s.toLong
     // magically chain implicits!  This line should chain conversion from string -> long -> int
     // http://stackoverflow.com/questions/5332801/how-can-i-chain-implicits-in-scala
@@ -271,18 +272,27 @@ object euler {
 
   var problems = Map[String, A=>R]()
 
-  def testProblem[E](func:Option[A=>R], arg:A, expected:E ) = {
+  def testProblem[E](func:Option[A=>R], arg:A, expected:E, msg: String ) = {
     func match {
-      case Some(f) => require(f(arg)==expected)
+      case Some(f) => require(f(arg)==expected, msg)
       case None => println("Ain't solved yet, cowboy")
     }
+  }
+
+  def testProblem[K <% String,V](key:K, arg: A, expected:V):Unit = {
+    testProblem(problems get key, arg, expected, "problem %s failed.".format(key.toString))
   }
 
   def testAll = {
     import implicitDefs._
 
-    testProblem(problems get 1, Array(), 233168)
-    testProblem(problems get 2, Array(4000000), 4613732)
+    implicit def intToStringArray(i:Int):Array[String] = Array(i.toString)
+    implicit def longToStringArray(l:Long):Array[String] = Array(l.toString)
+
+    testProblem(1, Array(), 233168)
+    testProblem(2, 4000000, 4613732)
+    testProblem(3, 600851475143L, 6857)
+    testProblem(5, 20, 232792560)
 
     "All tests passed!"
   }
