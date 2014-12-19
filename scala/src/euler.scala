@@ -1,6 +1,7 @@
 import scala.collection.mutable.Map
 import scala.language.{ implicitConversions, postfixOps }
 import scala.reflect.ClassTag
+import java.io.FileInputStream
 
 /**
  * Solving project euler problems using scala by Lev Neiman
@@ -86,11 +87,11 @@ object euler {
         else (3 until (Math.sqrt(n).toInt + 2) by 2) forall (n % _ != 0)
       }
 
-      def _makePrimes(N: NT, isPrimeFunc: NT => Boolean): Seq[NT] = {
-        //        (for (i <- (3L until N by 2) if (isPrimeFunc(i))) yield i).+:(2L)
-        (3L until N by 2).par.filter(isPrimeFunc(_)).+:(2L).toVector
-
-      }
+      /**
+       * Works in parallel
+       */
+      def _makePrimes(N: NT, isPrimeFunc: NT => Boolean): Seq[NT] =
+        (3L to N by 2).par.filter(isPrimeFunc(_)).+:(2L).toVector
 
       def makePrimes(N: NT, isPrimeFunc: NT => Boolean): Seq[NT] = {
         val doIt = (n: NT) => _makePrimes(n, isPrimeFunc)
@@ -273,24 +274,59 @@ object euler {
   def testProblem[E](func: Option[A => R], arg: A, expected: E, msg: String) = {
     func match {
       case Some(f) => require(f(arg) == expected, msg)
-      case None => println("Ain't solved yet, cowboy")
+      case None => println("Ain't solved it yet, cowboy")
     }
   }
 
   def testProblem[K <% String, V](key: K, arg: A, expected: V): Unit = {
+    println("testing problem %s".format(key.toString))
     testProblem(problems get key, arg, expected, "problem %s failed.".format(key.toString))
   }
 
-  def testAll = {
+  /**
+   * Test implementation of problems against correct solutions
+   */
+  def testAll(args: A) = {
     import implicitDefs._
 
     implicit def intToStringArray(i: Int): Array[String] = Array(i.toString)
     implicit def longToStringArray(l: Long): Array[String] = Array(l.toString)
+    implicit def toOption[E](l: E) = Some(l)
 
-    testProblem(1, Array(), 233168)
-    testProblem(2, 4000000, 4613732)
-    testProblem(3, 600851475143L, 6857)
-    testProblem(5, 20, 232792560)
+    var testCases = Map[String, () => Any]()
+    def addTest[E](name: String, args: A, expected: E, inFile: Option[String] = None) = {
+      testCases put (name, () => {
+        inFile match {
+          case Some(file) => System.setIn(new FileInputStream(file))
+          case None =>
+        }
+        testProblem(name, args, expected)
+      })
+    }
+
+    addTest(1, Array(), 233168)
+    addTest(2, 4000000, 4613732)
+    addTest(3, 600851475143L, 6857)
+    addTest(5, 20, 232792560)
+    addTest(6, 100, 25164150)
+    addTest(7, 10001, 104743)
+    addTest(8, 13, 23514624000L, "./in/8.in")
+    addTest(10, 2000000, 142913828922L)
+    addTest(13, 10, "5537376230", "./in/13.in")
+    addTest(16, 1000, 1366)
+    addTest(18, Array(), 1074, "./in/18.in")
+    addTest(20, 100, 648)
+    addTest(21, 10000, 31626)
+    addTest(25, 1000, 4782)
+
+    if (args.length == 0) {
+      testCases foreach (_._2.apply())
+    } else {
+      testCases get args(0) match {
+        case Some(testCase) => testCase()
+        case None => "didn't add test for this one yet"
+      }
+    }
 
     "All tests passed!"
   }
@@ -321,7 +357,7 @@ object euler {
     problems put ("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)))
     problems put ("primeFactors", Fun.Primes.primeFactors(_))
     problems put ("properDivisors", (arg: A) => pp(Fun.properDivisors(arg(0)).toArray.sortWith(_ < _)))
-    problems put ("test", (arg: A) => testAll)
+    problems put ("test", testAll _)
 
     // wrap each solution function with timing logic
     problems.keySet.foreach((k: String) => {
