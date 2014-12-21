@@ -9,6 +9,12 @@ import java.io.FileInputStream
  * https://projecteuler.net
  */
 object euler {
+
+  // type for arguments of euler problem implementation.
+  type A = Array[String]
+  // type for return value of euler problem implementation.
+  type R = Any
+
   object Fun {
     /**
      * memoize an arbitrary Function1
@@ -133,11 +139,6 @@ object euler {
     }
   }
 
-  // type for arguments of euler problem implementation.
-  type A = Array[String]
-  // type for return value of euler problem implementation.
-  type R = Any
-
   // pretty print array
   implicit def arrayPrettyPrint[G](arg: Array[G]): String = {
     val vals = arg.foldLeft("") { (acc, n) =>
@@ -240,7 +241,7 @@ object euler {
       (maxChain, maxSum)
     }
     Fun.TimeFunc0(() =>
-      (0 until primeList.length / 2).par.map((x) => maxChain(x.toInt, primeList, isPrime)).maxBy(_._1))()
+      (0 until primeList.length / 2).map((x) => maxChain(x.toInt, primeList, isPrime)).maxBy(_._1))()
 
   }
 
@@ -278,8 +279,8 @@ object euler {
     }
   }
 
-  def testProblem[K <% String, V](key: K, arg: A, expected: V): Unit = {
-    println("testing problem %s".format(key.toString))
+  def testProblem[V](key: String, arg: A, expected: V): Unit = {
+    println("------\ntesting problem %s".format(key.toString))
     testProblem(problems get key, arg, expected, "problem %s failed.".format(key.toString))
   }
 
@@ -318,9 +319,12 @@ object euler {
     addTest(20, 100, 648)
     addTest(21, 10000, 31626)
     addTest(25, 1000, 4782)
+    addTest(50, 1000000, (543, 997651))
+    addTest(67, Array(), 7273, "./in/67.in")
 
     if (args.length == 0) {
-      testCases foreach (_._2.apply())
+      // run all of them
+      testCases foreach (_._2())
     } else {
       testCases get args(0) match {
         case Some(testCase) => testCase()
