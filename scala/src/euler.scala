@@ -2,6 +2,7 @@ import scala.collection.mutable.Map
 import scala.language.{ implicitConversions, postfixOps }
 import scala.reflect.ClassTag
 import java.io.FileInputStream
+import scala.collection.Parallel
 
 /**
  * Solving project euler problems using scala by Lev Neiman
@@ -14,6 +15,37 @@ object euler {
   type A = Array[String]
   // type for return value of euler problem implementation.
   type R = Any
+
+  object PrettyPrint {
+    // pretty print array
+    implicit def arrayPrettyPrint[G](arg: Array[G]): String = {
+      val vals = arg.foldLeft("") { (acc, n) =>
+        {
+          acc + n.toString + ", "
+        }
+      }
+      "[%s]".format(vals)
+    }
+
+    implicit def seqPrettyPrint[G: ClassTag](arg: Seq[G]): String = {
+      arrayPrettyPrint(arg.toArray[G])
+    }
+
+    //pretty print map
+    implicit def mapPrettyPrint[K, V](m: Map[K, V]): String = {
+      val vals = m.iterator.foldLeft("") { (acc, n) =>
+        {
+          acc + n._1 + ": " + n._2 + ", "
+        }
+      }
+      "{%s}".format(vals)
+    }
+
+    /**
+     * identity function to force scala to use implicit pretty print conversion
+     */
+    def pp(x: String): String = x
+  }
 
   object Fun {
     /**
@@ -60,22 +92,9 @@ object euler {
     // http://www.scala-lang.org/api/current/index.html#scala.collection.immutable.Stream
     def fibs: Stream[BigInt] = BigInt(0) #:: fibs.scanLeft(BigInt(1))(_ + _)
 
-    def properDivisors(n: Long): Iterable[Long] = {
-      var ret = collection.mutable.HashSet[Long](1L)
-      val rec = (n: Long) => {
-        if (n > 1) {
-          for (i <- 2L until n / 2L) {
-            if (n % i == 0) {
-              ret.+=(i, n / i)
-              properDivisors(i)
-              properDivisors(n / i)
-            }
-          }
-        }
-      }
-
-      rec(n)
-      ret
+    def properDivisors[N](n: N)(implicit num: Integral[N]): Iterable[N] = {
+      import num._
+      (collection.immutable.NumericRange(num.fromInt(2), n / num.fromInt(2) + num.one, num.fromInt(1))).filter(n % _ == 0).+:(num.one)
     }
 
     /**
@@ -139,35 +158,6 @@ object euler {
     }
   }
 
-  // pretty print array
-  implicit def arrayPrettyPrint[G](arg: Array[G]): String = {
-    val vals = arg.foldLeft("") { (acc, n) =>
-      {
-        acc + n.toString + ", "
-      }
-    }
-    "[%s]".format(vals)
-  }
-
-  implicit def seqPrettyPrint[G: ClassTag](arg: Seq[G]): String = {
-    arrayPrettyPrint(arg.toArray[G])
-  }
-
-  //pretty print map
-  implicit def mapPrettyPrint[K, V](m: Map[K, V]): String = {
-    val vals = m.iterator.foldLeft("") { (acc, n) =>
-      {
-        acc + n._1 + ": " + n._2 + ", "
-      }
-    }
-    "{%s}".format(vals)
-  }
-
-  /**
-   * identity function to force scala to use implicit pretty print conversion
-   */
-  def pp(x: String): String = x
-
   def RunIt(func: A => R): (A => R) = {
     (args: A) =>
       {
@@ -180,6 +170,7 @@ object euler {
   //////////// Actual problem implementations /////////////////
 
   def Problem_5(n: Long) = {
+    import PrettyPrint._
     var ps = List(1L)
     val merge = (x: List[Long], y: List[Long]) => {
       var ret = x
@@ -217,6 +208,19 @@ object euler {
     val nums = 1L until lim filter isAmicable
     println(nums)
     nums.sum
+  }
+
+  def Problem_23() = {
+    val lim = 28123
+    val abundantNums = (12 until lim).map((x) => (x, Fun.properDivisors(x))).filter((x) => { x._1 < x._2.sum }).map(_._1).toSet
+    val can = (n: Int) => {
+      abundantNums.find((x) => { abundantNums contains (n - x) }) match {
+        case Some(i) => true
+        case None => false
+      }
+    }
+    ((1 until lim).par filter { !can(_) }).sum
+
   }
 
   def Problem_50(lim: Long) = {
@@ -318,6 +322,7 @@ object euler {
     addTest(18, Array(), 1074, "./in/18.in")
     addTest(20, 100, 648)
     addTest(21, 10000, 31626)
+    addTest(23, Array(), 4179871)
     addTest(25, 1000, 4782)
     addTest(50, 1000000, (543, 997651))
     addTest(67, Array(), 7273, "./in/67.in")
@@ -335,11 +340,26 @@ object euler {
     "All tests passed!"
   }
 
+  def profileProblem(prob: String, times: Int, args: A) = {
+    var ret = 0.0
+    problems get prob match {
+      case Some(problem) => {
+        println("starting to profile %s".format(prob))
+        val func = Fun.TimeFunc1(problem, (sec: Double) => ret += sec)
+        val answers = 1 until times map ((x) => { println("doing run #%d".format(x)); func(args) })
+        if (!(answers forall (_ == answers(0)))) throw new RuntimeException("whoops... side effects?")
+      }
+      case None => println("didnt solve %s yet".format(prob))
+    }
+    ret / times
+  }
+
   def main(args: A) {
     // always play it safe
     val wrapIt = (RunIt _).compose(Fun.TimeFunc1(_: A => R, (x: Double) => println("Problem took %f seconds to solve".format(x))))
 
     import implicitDefs._
+    import PrettyPrint._
 
     problems put (1, (arg: A) => (for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum)
     problems put (2, (arg: A) => (for (i <- Fun.fibs takeWhile (_ < arg(0)) if i < arg(0) && i % 2 == 0) yield i).sum)
@@ -356,26 +376,20 @@ object euler {
     problems put (20, (arg: A) => (BigInt(1) until BigInt(arg(0))).foldLeft(BigInt(1))((acc, n) => acc * n).toString.foldLeft(0)((acc, n) => acc + n - '0'))
     problems put (21, Problem_21(_))
     problems put (25, (arg: A) => Fun.fibs.takeWhile((x) => x.toString.size < stringToLong(arg(0))).zipWithIndex.last._2 + 1)
+    problems put (23, (arg: A) => Problem_23())
     problems put (50, Problem_50(_))
     problems put (67, MaxPathSum _)
     problems put ("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)))
     problems put ("primeFactors", Fun.Primes.primeFactors(_))
-    problems put ("properDivisors", (arg: A) => pp(Fun.properDivisors(arg(0)).toArray.sortWith(_ < _)))
+    problems put ("properDivisors", (arg: A) => pp(Fun.properDivisors(stringToLong(arg(0))).toArray.sortWith(_ < _)))
     problems put ("test", testAll _)
-
-    // wrap each solution function with timing logic
-    problems.keySet.foreach((k: String) => {
-      problems get k match {
-        case Some(func) => problems.put(k, wrapIt(func))
-        case None => println("what")
-      }
-    })
+    problems put ("profile", (arg: A) => profileProblem(arg(0), if (arg.length > 1) arg(1) else 5, if (arg.length > 2) arg.tail.tail else Array()))
 
     // execute the problem user selected
     var errMsg = "shit i didn't solve that one yet :/\n try %s".format(pp(problems.keySet.toArray.sortWith(_ < _)))
     if (args.length > 0) {
       problems get args(0) match {
-        case Some(i) => i(args.tail)
+        case Some(i) => wrapIt(i)(args.tail)
         case None => println(errMsg)
       }
     } else println(errMsg)
