@@ -220,7 +220,6 @@ object euler {
       }
     }
     ((1 until lim).par filter { !can(_) }).sum
-
   }
 
   def Problem_50(lim: Long) = {
@@ -323,6 +322,7 @@ object euler {
     addTest(20, 100, 648)
     addTest(21, 10000, 31626)
     addTest(23, Array(), 4179871)
+    addTest(24, 1000000, "2783915460")
     addTest(25, 1000, 4782)
     addTest(50, 1000000, (543, 997651))
     addTest(67, Array(), 7273, "./in/67.in")
@@ -375,8 +375,9 @@ object euler {
     problems put (18, MaxPathSum _)
     problems put (20, (arg: A) => (BigInt(1) until BigInt(arg(0))).foldLeft(BigInt(1))((acc, n) => acc * n).toString.foldLeft(0)((acc, n) => acc + n - '0'))
     problems put (21, Problem_21(_))
-    problems put (25, (arg: A) => Fun.fibs.takeWhile((x) => x.toString.size < stringToLong(arg(0))).zipWithIndex.last._2 + 1)
     problems put (23, (arg: A) => Problem_23())
+    problems put (24, (arg: A) => "0123456789".permutations.zipWithIndex.dropWhile(_._2 < arg(0) - 1).next._1)
+    problems put (25, (arg: A) => Fun.fibs.takeWhile((x) => x.toString.size < stringToLong(arg(0))).zipWithIndex.last._2 + 1)
     problems put (50, Problem_50(_))
     problems put (67, MaxPathSum _)
     problems put ("primes", (arg: A) => Fun.Primes.makePrimes(arg(0)))
