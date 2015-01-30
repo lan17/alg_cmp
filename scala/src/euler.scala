@@ -169,6 +169,15 @@ object euler {
 
   //////////// Actual problem implementations /////////////////
 
+  def Problem_4() = {
+    def isPalindrome[N](n:N): Boolean = n.toString.reverse == n.toString
+   
+    val numz = for (i <- 100 to 999; j <- i to 999 if isPalindrome(i*j)) yield i *j
+    numz.max
+   
+   
+  }
+
   def Problem_5(n: Long) = {
     import PrettyPrint._
     var ps = List(1L)
@@ -311,6 +320,7 @@ object euler {
     addTest(1, Array(), 233168)
     addTest(2, 4000000, 4613732)
     addTest(3, 600851475143L, 6857)
+    addTest(4, Array(), 906609)
     addTest(5, 20, 232792560)
     addTest(6, 100, 25164150)
     addTest(7, 10001, 104743)
@@ -364,6 +374,7 @@ object euler {
     problems put (1, (arg: A) => (for (i <- 1 until 1000 if i % 3 == 0 || i % 5 == 0) yield i).sum)
     problems put (2, (arg: A) => (for (i <- Fun.fibs takeWhile (_ < arg(0)) if i < arg(0) && i % 2 == 0) yield i).sum)
     problems put (3, (arg: A) => Fun.Primes.primeFactors(arg(0)).max)
+    problems put (4, (arg: A) => Problem_4)
     problems put (5, Problem_5(_))
     problems put (6, (arg: A) => Math.pow((1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n }, 2L).toLong - (1L to arg(0)).foldLeft(0L) { (acc, n) => acc + n * n })
     // https://primes.utm.edu/howmany.html ;)
