@@ -125,6 +125,15 @@ ostream & operator <<(ostream & os, const vector<T> & v )
 }
 
 template<class T>
+ostream & operator <<(ostream & os, const vector<vector<T> > & v)
+{
+	for (int i = 0; i < v.size(); ++i) {
+		os<<v[i]<<endl;
+	}
+	return os;
+}
+
+template<class T>
 ostream & operator <<(ostream & os, const vector<T> * v )
 {
 	os<<*v;
@@ -166,10 +175,12 @@ class FoxAndSouvenirTheNext
 	public:
 	string ableToSplit(vector <int> value)
 	{
+		sort(ALL(value));
 		int sum = 0;
 		for (const int & c:value) sum += c;
 		int N = value.size();
 		int M = sum/2;
+		d_print(M);
 		if (sum%2==0 && value.size()%2 == 0) {
 			d_print(sum);
 			d_print(value.size());
@@ -177,8 +188,8 @@ class FoxAndSouvenirTheNext
 			mem[0][value[0]] = 1;
 			for (int i = 1; i < N; ++i) {
 				for (int j = value[i]; j <= M; ++j) {
-					if (mem[i-1][j-value] > 0) {
-						mem[i][j] = mem[i-1][j-value] + 1;
+					if (mem[i-1][j-value[i]] > 0) {
+						mem[i][j] = mem[i-1][j-value[i]] + 1;
 					} else if ( j == value[i]) {
 						if (mem[i][j] == 0) mem[i][j] =1 ;
 					} else {
@@ -186,7 +197,8 @@ class FoxAndSouvenirTheNext
 					}
 				}
 			}
-
+//{{3, 26, 28, 15, 15, 25}}
+			d_print(mem);
 			//if (can(value, sum/2, 0, 1, value[0])) return "Possible";
 			for (int i = 0; i < N; ++i) {
 				if (mem[i][M] == N/2) return "Possible";
