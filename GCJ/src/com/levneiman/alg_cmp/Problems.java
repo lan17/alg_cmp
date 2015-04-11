@@ -562,8 +562,8 @@ public class Problems
 		try
 		{
 			solveProblem(
-					new GCJ_2014.Round1C.B(),
-					"input.txt", "output.txt" );
+					new GCJ_2015.QualificationRound.C(),
+					"input.in", "output.txt" );
 		}
 		catch( Exception e )
 		{

@@ -132,6 +132,15 @@ public class GCJ_2014
 
 		}
 
+    public static class C implements Problems.Problem {
+
+      @Override
+      public void solve(InputStream in, PrintStream out)
+          throws Exception {
+
+      }
+    }
+
 		public static class D implements Problems.Problem
 		{
 
