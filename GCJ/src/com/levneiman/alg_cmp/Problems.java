@@ -63,6 +63,22 @@ public class Problems
 	            }
 	            return ret;
 	        }
+
+			public static String print(List list) {
+				String ret = "";
+				for (Object el : list) {
+					ret += el.toString() + ", ";
+				}
+				return ret;
+			}
+
+			public static String print(int[] arr) {
+				String ret = "";
+				for (int i = 0; i < arr.length; ++i) {
+					ret += Integer.toString(arr[i]) + ", ";
+				}
+				return ret;
+			}
 	    }
 
 	    /**
@@ -562,7 +578,7 @@ public class Problems
 		try
 		{
 			solveProblem(
-					new GCJ_2015.QualificationRound.C(),
+					new GCJ_2015.QualificationRound.B(),
 					"input.in", "output.txt" );
 		}
 		catch( Exception e )

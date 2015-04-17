@@ -50,6 +50,8 @@ public class GCJ_2015 {
     }
     public static class B implements Problem {
 
+      static final int INF = (int)1e6;
+
       Comparator<Integer> reverse = new Comparator<Integer>() {
         @Override
         public int compare(Integer o1, Integer o2) {
@@ -57,26 +59,73 @@ public class GCJ_2015 {
         }
       };
 
-      int solve(int cost, List<Integer> list) {
-        Problems.SO.println(list);
-        int max = list.get(0);
-        Problems.SO.println(String.format("cost %d, max %d", cost, max));
-        if (cost > max) return cost+max;
-        List<Integer> subList = new ArrayList<>(list.subList(1, list.size()));
-        subList.add(max/2);
-        subList.add(max - max/2);
-        subList.sort(reverse);
-
-        /*
-        if ((cost + max) >= (cost + 1 + subList.get(0))) {
-          return solve(cost+1, subList);
+      // magic min, min min, max el after
+      static int S[][] = new int[1001][3];
+      static {
+        for (int i = 0; i < S.length; ++i) {
+          for (int j = 0; j < S[i].length; ++j) {
+            S[i][j] = INF;
+          }
         }
-        else {
-          Problems.SO.println(String.format("balls - %d %d", cost, max));
-          return cost + max;
-        }*/
 
-        return Math.min(cost + max, solve(cost+1, subList));
+        S[0][0] = S[0][1] = S[0][2] = 0;
+        S[1][0] = 0;
+        S[1][1] = 1;
+        S[1][2] = 0;
+        S[2][0] = 0;
+        S[2][1] = 2;
+        S[2][2] = 0;
+        S[3][0] = 0;
+        S[3][1] = 3;
+        S[3][2] = 0;
+
+        computeNumber(14);
+        computeNumber(6);
+        computeNumber(4);
+
+        for (int i = 4; i <= 14; ++i) {
+          SO.println(String.format("%d - %s", i, Problems.Util.PrettyPrint.print(S[i])));
+        }
+      }
+
+      static int [] computeNumber(int num) {
+        if (S[num][1] != INF) return S[num];
+        for (int i = 1; i <= num /2 ; ++i) {
+          int [] left = computeNumber(i);
+          int [] right = computeNumber(num-i);
+          int moves = (num % 2 == 0 ? 0 : 1) +  Math.max(left[0], right[0]) + Math.max(left[1], right[1]);
+          if (S[num][1] > moves) {
+            SO.println(String.format("Maybe %d - %d:%s %d:%s - moves %d", num,
+                    i,
+                    Problems.Util.PrettyPrint.print(left),
+                    num -i,
+                    Problems.Util.PrettyPrint.print(right),moves));
+            S[num][0] = 1 + Math.max(left[0], right[0]);
+            S[num][1] = moves;
+            S[num][2] = Math.max(i, num -i);
+          }
+        }
+        return S[num];
+      }
+
+
+      int solve(int cost, List<Integer> list, int min) {
+        //Problems.SO.println(list);
+        int max = list.get(0);
+        //Problems.SO.println(String.format("cost %d, max %d", cost, max));
+
+        if (cost >= max) return cost+max;
+
+        int ret = cost + max;
+        for (int i = max % 2 == 0 ? max / 2 : max / 2 + 1; i < max; ++i) {
+          List<Integer> subList = new ArrayList<>(list.subList(1, list.size()));
+          subList.add(max - i);
+          subList.add(i);
+          subList.sort(reverse);
+          ret = Math.min(solve(cost+1, subList, min), ret);
+        };
+
+        return ret;
 
       }
 
@@ -93,7 +142,7 @@ public class GCJ_2015 {
           plates.sort(reverse);
           Problems.SO.println(plates);
 
-          String answer = String.format("Case #%d: %d", CASE, solve(0, plates));
+          String answer = String.format("Case #%d: %d", CASE, solve(0, plates, Integer.MAX_VALUE));
           Problems.SO.println(answer);
           out.println(answer);
         }
@@ -107,11 +156,11 @@ public class GCJ_2015 {
       static final int J = 3;
       static final int K = 4;
 
-      static final int [][] M = {
-          {1, I, J, K},
-          {I, -1, K, -J},
-          {J, -K, -1, I},
-          {K, J, -I, -1}
+      static final int []M =
+          {1, I, J, K,
+          I, -1, K, -J,
+          J, -K, -1, I,
+          K, J, -I, -1
       };
 
       static int ident(int cc) {
@@ -129,7 +178,8 @@ public class GCJ_2015 {
 
       static int mult(int i, int j) {
         //Problems.SO.println(i + "--"+j);
-        int ret = M[Math.abs(i)-1][Math.abs(j)-1];
+        //int ret = M[Math.abs(i)-1][Math.abs(j)-1];
+        int ret = M[(Math.abs(i)-1) * 4 + (Math.abs(j)-1)];
         if (i < 0 && j > 0) ret *= -1;
         if (j < 0 && i > 0) ret *= -1;
         return ret;
@@ -150,16 +200,14 @@ public class GCJ_2015 {
       }
 
       boolean brute(int X, String str) {
+        if (str.length() == 1 ) return false;
+        if (str.chars().distinct().count() == 1 ) return false;
         String m = "";
         for (int i = 0; i < X; ++i) {
           m += str;
         }
 
         final int [] ints = m.chars().map(C::ident).toArray();
-        for (int i = 0; i <ints.length; ++i) {
-          SO.print(ints[i] + ", ");
-        }
-        SO.println();
 
         final BooleanCnt ret = new BooleanCnt();
         ret.cunt = false;
@@ -209,6 +257,7 @@ public class GCJ_2015 {
           X = scanner.nextInt();
           String str = scanner.next();
           SO.println("string - " + str);
+          SO.println("X - " + X);
           out.println(String.format("Case #%d: %s", CASE, brute(X, str) ? "YES" : "NO"));
         }
       }

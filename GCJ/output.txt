@@ -1,5 +1,10 @@
-Case #1: NO
-Case #2: YES
-Case #3: NO
-Case #4: YES
-Case #5: NO
+Case #1: 4
+Case #2: 4
+Case #3: 5
+Case #4: 5
+Case #5: 5
+Case #6: 6
+Case #7: 6
+Case #8: 6
+Case #9: 7
+Case #10: 7
