@@ -1,60 +1,9 @@
 #!/usr/bin/env node
 "use strict";
 
-var FS   = require('fs'),
-    Q    = require('q'),
-    Path = require('path'),
-    LOG  = require('bunyan').createLogger({name : "gcj"}),
-    _    = require('lodash');
+var Utils = require('./gcjUtils');
 
-const EPSILON = 1e-6;
-
-const makeArrayIterator = array => {
-  var index = 0;
-
-  return {
-    next(){
-      return array[index++];
-    },
-    hasNext(){
-      index < array.length;
-    }
-  };
-};
-
-const TReader = function () {
-  const dataLines = FS.readFileSync(process.argv[2], {encoding : 'UTF8'}).split('\n');
-
-  this.numberOfCases = () => Number(dataLines[0]);
-
-  this.getCaseIterator = () => makeArrayIterator(dataLines.slice(1));
-
-  this.getCase = caseNum => dataLines[caseNum];
-};
-
-const TWriter = function (caseNum, solution) {
-  this.solutions = {};
-  this.add = (caseNum, solution) => this.solutions[caseNum] = solution;
-  this.flush = () => Q(FS.writeFileSync(process.argv[3], _.map(_.keys(this.solutions), caseNum => `Case #${caseNum}: ${this.solutions[caseNum]}`).join('\n')));
-};
-
-const solveAll = (reader, solver, writer) => {
-  const startTime = Date.now();
-  const T = reader.numberOfCases()
-  const promise = Q.defer();
-  var semaphore = T;
-  try {
-    for (var i = 0; i < T; i += 1) {
-      const ii = i;
-      var solution = solver(reader.getCase(i + 1));
-      writer.add(i + 1, solution);
-    }
-    writer.flush().then(() => promise.resolve(Date.now() - startTime));
-  } catch (error) {
-    promise.reject(error);
-  }
-  return promise.promise;
-};
+const LOG = require('bunyan').createLogger({name:'prob a', level:'debug'});
 
 const solveCase = input => {
   const N = Number.parseInt(input);
@@ -83,7 +32,4 @@ const solveCase = input => {
   return "fuck";
 };
 
-solveAll(new TReader(), solveCase, new TWriter()).then(
-  ms => LOG.info(`Solved in ${ms/1000.0} seconds`), error => {
-    LOG.error(error);
-  });
+Utils.solveAll(new Utils.TReader(process.argv[2]), solveCase, new Utils.TWriter(process.argv[3])).done();
