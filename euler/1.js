@@ -1,6 +1,6 @@
 "use strict";
 
-var lim = 1000;
+var lim = 10000000;
 var sum = 0;
 var nums = [3,5];
 var seen = {};
@@ -13,7 +13,7 @@ for( var i = 1; i < lim; ++i )
 		{
 			if( ! (t in seen ) )
 			{
-				sum += t;
+				sum += t
 				seen[t] = true;
 			}
 		}
