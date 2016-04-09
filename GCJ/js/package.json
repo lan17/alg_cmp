@@ -1,0 +1,16 @@
+{
+  "name": "gcj_lev",
+  "version": "1.0.0",
+  "description": "my google code jam solutions in js!",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Lev Alexandrovich Neiman",
+  "license": "ISC",
+  "dependencies": {
+    "bunyan": "^1.8.0",
+    "lodash": "^4.9.0",
+    "q": "^1.4.1"
+  }
+}
