@@ -1,0 +1,1 @@
+arrayMaximalAdjacentDifference inputArray =  maximum . map (\(x,y) -> abs (x-y)) $ zip (tail inputArray) inputArray
