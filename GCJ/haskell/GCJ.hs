@@ -3,29 +3,38 @@ module GCJ (gcjMain, primes) where
 import Data.List
 import System.Environment
 import Criterion.Measurement
+import Control.Parallel
+import Control.Parallel.Strategies
+import Control.DeepSeq
 
 -- I/O helper functions
-
 -- Process entire GCJ style problem input and produce GCJ style output.
-solutionsToString :: ([Char] -> [Char]) -> [Char] -> [Char]
-solutionsToString solveFn content = intercalate "\n" solutions
+solutionsToString :: [[Char]] -> [Char]
+solutionsToString solutions = intercalate "\n" $ decoratedSolutions
     where
-        solutions = map solveCase $ zip [1..] $ tail cases
-        solveCase = \(case_num, caseInput) -> "Case #" ++ (show case_num) ++ ": " ++ solveFn(caseInput)
-        cases = lines content
+        decoratedSolutions = map decorateCaseSolution $ zip [1..] solutions
+        decorateCaseSolution (case_num, solution) = "Case #" ++ (show case_num) ++ ": " ++ solution
 
 gcjMain :: ([Char] -> [Char]) -> IO ()
 gcjMain solveFn = do
+    initializeTime
+
     args <- getArgs
     let inputFileName = args !! 0
     let outputFileName = inputFileName ++ ".out"
     content <- readFile $ args !! 0
 
-    startTime <- getCPUTime
+    startTime <- getTime
 
-    writeFile outputFileName $ solutionsToString solveFn content
+    let cases = tail $ lines content
 
-    endTime <- getCPUTime
+    let solutions = parMap rpar solveFn cases
+    endTime <- solutions `deepseq` getTime
+
+    let solutionString = solutionsToString solutions
+    writeFile outputFileName $ solutionString
+
+    putStrLn $ "Wrote to " ++ outputFileName
     putStrLn $ "Took " ++ secs (endTime - startTime) ++ " to solve"
 
 -- Algos

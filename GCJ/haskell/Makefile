@@ -1,5 +1,5 @@
 all:
-	ghc -O2 ${T} GCJ.hs
+	ghc ${T} GCJ.hs -XBangPatterns -threaded -O3 -rtsopts -feager-blackholing
 
 clean:
 	rm -rf *.hi *.o

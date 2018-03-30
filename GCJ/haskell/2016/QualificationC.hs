@@ -24,7 +24,7 @@ toNumbersFromString str = toNumbersFromDigits $ map digitToInt str
 toNumbersFromMask :: Integer -> [Integer]
 toNumbersFromMask mask = toNumbersFromString $ intAsBinary mask
 
-divisors = take 1000 primes
+divisors = take 5 primes
 
 -- Generate lazy list of Jam Coins of length N
 goodJamCoins n = [x | x <- [start, (start + 2)..], checkJamCoinBases $ toNumbersFromMask x]
@@ -38,8 +38,9 @@ getJamCoinDivisors jamCoinBases = map (\b -> head [divisor | divisor <- divisors
 
 -- Solve individual case given N and J and output a String
 getJamCoins :: Int -> Int -> [Char]
-getJamCoins n j = intercalate "\n" $ map outputJamCoinLine (take j $ goodJamCoins n)
+getJamCoins n j = intercalate "\n" $ map outputJamCoinLine jamCoins
     where
+        jamCoins = take j $ goodJamCoins n
         outputJamCoinLine jamCoin = intercalate " " $ [intAsBinary jamCoin] ++ jamCoinDivisorsString
             where jamCoinDivisorsString = map show $ jamCoinDivisors
                   jamCoinDivisors = getJamCoinDivisors $ toNumbersFromMask jamCoin
