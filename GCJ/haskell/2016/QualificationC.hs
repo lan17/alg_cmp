@@ -2,6 +2,8 @@ import Data.List.Split
 import Data.List
 import Numeric (showHex, showIntAtBase)
 import Data.Char (intToDigit)
+import Control.Parallel
+import Control.Parallel.Strategies
 
 import GCJ
 

@@ -14,5 +14,8 @@ isPrime x = foldl (&&) True $ map (\d -> x `mod` d == 0) [2..x-1]
 stress x = show $ isPrime n
     where n = read x :: Integer
 
+stressP x = show $ primes !! n
+    where n = read x :: Int
+
 
 main = gcjMain stress

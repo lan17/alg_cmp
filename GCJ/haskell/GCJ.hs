@@ -29,6 +29,7 @@ gcjMain solveFn = do
     let cases = tail $ lines content
 
     let solutions = parMap rpar solveFn cases
+    -- use deepseq here to force evaluation of solutions at this point.
     endTime <- solutions `deepseq` getTime
 
     let solutionString = solutionsToString solutions
