@@ -25,6 +25,7 @@ prob5 = foldr1 lcm1 [1..20]
         lcm1 a b = (a * b) `div` (gcd1 a b)
         gcd1 a 0 = a
         gcd1 a b = gcd1 b (a `mod` b)
+
 -- prob6
 sumOfSquares n = sum [ x^2 | x <- [1..n] ]
 squareOfSum n = (sum [1..n])^2
