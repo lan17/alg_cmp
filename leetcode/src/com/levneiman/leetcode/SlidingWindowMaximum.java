@@ -1,14 +1,11 @@
 package com.levneiman.leetcode;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 
 public class SlidingWindowMaximum {
-
   class Solution {
 
     void increment(Map<Integer, Integer> counts, int x) {
@@ -28,17 +25,16 @@ public class SlidingWindowMaximum {
     }
 
     public int[] maxSlidingWindow(int[] nums, int k) {
-      PriorityQueue<Integer> heap = new PriorityQueue<Integer>(
-          nums.length,
-          new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-              return -1 * o1.compareTo(o2);
-            }
-          });
+      if (nums.length == 0) {
+        return new int[0];
+      }
+      PriorityQueue<Integer> heap =
+          new PriorityQueue<>(
+              nums.length,
+              (o1, o2) -> -1 * o1.compareTo(o2));
       Map<Integer, Integer> counts = new HashMap<>(nums.length);
 
-      int [] maxes = new int[nums.length - k  + 1];
+      int[] maxes = new int[nums.length - k + 1];
 
       for (int i = 0; i < k; i++) {
         heap.add(nums[i]);
@@ -47,18 +43,17 @@ public class SlidingWindowMaximum {
       maxes[0] = heap.peek();
 
       for (int i = k; i < nums.length; i++) {
-        int d = nums[i-1];
-        int newDCount = decrement(counts, d);
+        decrement(counts, nums[i-k]);
         increment(counts, nums[i]);
+
+        heap.add(nums[i]);
 
         while (counts.get(heap.peek()) == 0) {
           heap.poll();
         }
 
-        maxes[i-k+1] = heap.peek();
-
+        maxes[i - k + 1] = heap.peek();
       }
-
 
       return maxes;
     }
