@@ -1,4 +1,3 @@
-# alg_cmp
-My programming competition solutions
+# Programming Practice
 
-WITNESS ME
+Coffee makes you strong.

@@ -46,7 +46,7 @@ public class SlidingWindowMaximum {
         decrement(counts, nums[i-k]);
         increment(counts, nums[i]);
 
-        heap.add(nums[i]);
+        if (counts.get(nums[i]) == 1) heap.add(nums[i]);
 
         while (counts.get(heap.peek()) == 0) {
           heap.poll();
