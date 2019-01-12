@@ -83,6 +83,10 @@ public class OctGet {
         while ((line = br.readLine()) != null) {
           lines.add(line);
           String[] parts = line.split(" ");
+          if (parts.length != 2) {
+            LOG.warning("Can't process line: " + line);
+            continue;
+          }
           results.add(downloader.downloadToFile(parts[0], outputFolderPath + "/" + parts[1]));
         }
       }
@@ -95,7 +99,6 @@ public class OctGet {
           LOG.log(Level.WARNING, String.format("Couldn't download %s", lines.get(i)), throwable);
         }
       }
-      LOG.info("DONE");
       System.out.println(
           String.format(
               "Running time, seconds: %f", (System.currentTimeMillis() - startTimeMs) / 1000.0));
