@@ -35,7 +35,7 @@ public class RateLimitedInputStream extends InputStream {
     // If buffer we are trying to read to is larger than rate, we need to artificially lower number
     // of bytes to read at once.
     if (len > rateLimiter.getRate()) {
-      len = (int)rateLimiter.getRate()/200;
+      len = (int) rateLimiter.getRate();
     }
 
     rateLimiter.acquire(len);

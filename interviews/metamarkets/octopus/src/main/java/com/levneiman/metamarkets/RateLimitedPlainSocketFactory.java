@@ -22,9 +22,6 @@ class RateLimitedPlainSocketFactory extends PlainConnectionSocketFactory {
 
   @Override
   public Socket createSocket(HttpContext context) throws IOException {
-    RateLimitedSocket socket = new RateLimitedSocket();
-    socket.setRateLimiter(rateLimiter);
-    socket.setOnBytesReadListener(onBytesReadListener);
-    return socket;
+    return new RateLimitedSocket(rateLimiter, onBytesReadListener);
   }
 }

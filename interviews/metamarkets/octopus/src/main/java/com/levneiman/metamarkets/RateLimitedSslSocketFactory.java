@@ -8,7 +8,11 @@ import org.apache.http.ssl.SSLContexts;
 import java.io.IOException;
 import java.net.Socket;
 
-/** Simply override {@link SSLConnectionSocketFactory} to create a throttled socket. */
+/**
+ * Simply override {@link SSLConnectionSocketFactory} to create a throttled socket. This is very
+ * similar to {@link RateLimitedPlainSocketFactory} but we inherit from {@link
+ * SSLConnectionSocketFactory} in order to support SSL.
+ */
 class RateLimitedSslSocketFactory extends SSLConnectionSocketFactory {
   private final RateLimiter rateLimiter;
   private final OnBytesRead onBytesReadListener;
@@ -21,9 +25,6 @@ class RateLimitedSslSocketFactory extends SSLConnectionSocketFactory {
 
   @Override
   public Socket createSocket(HttpContext context) throws IOException {
-    RateLimitedSocket socket = new RateLimitedSocket();
-    socket.setRateLimiter(rateLimiter);
-    socket.setOnBytesReadListener(onBytesReadListener);
-    return socket;
+    return new RateLimitedSocket(rateLimiter, onBytesReadListener);
   }
 }
