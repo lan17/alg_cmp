@@ -4,3 +4,5 @@ a.out
 *.iml
 *.o
 *.svn
+.DS_Store
+.idea
